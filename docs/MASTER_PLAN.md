@@ -24,8 +24,8 @@ Nothing may be counted complete merely because it was not seen.
 
 The independently packaged components are `ip-commandmic 1.0.0rc2`,
 `ip-commandmic-desktop 0.1.0-alpha.9`, and `ip-commandmic-lab
-0.1.0-alpha.32`. The prior library candidate is public at `v1.0.0rc1`; rc2
-publication, TestPyPI and PyPI remain pending. Automated suites pass (195
+0.1.0-alpha.32`. The library rc2 and Lab alpha.32 prereleases are public on
+GitHub; TestPyPI and PyPI remain pending. Automated suites pass (195
 library tests plus 5 subtests, 3
 Desktop tests, and 19 Lab tests). The `ip-commandmic-ui` and
 `ip-commandmic-web` repositories are initialized contract scaffolds and are not
