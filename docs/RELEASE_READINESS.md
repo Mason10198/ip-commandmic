@@ -36,9 +36,9 @@ physical acceptance gate.
   passes all 19 checks: 90,000 continuous radio RTP packets, 90,012 continuous
   microphone RTP packets, zero radio playout concealments, ten fresh-object
   restart cycles, routed interruption and abrupt subprocess replacement.
-- [x] Public `v1.0.0rc1` version metadata and release notes explicitly preserve
+- [x] Public `v1.0.0rc2` version metadata and release notes explicitly preserve
   the remaining physical limitations. The GitHub prerelease tag resolves to
-  commit `174740c35839940389404008c6fa6fabf6fe34e4`.
+  commit `33fe1c333315217d2a77e821bc968776c5aa8d7f`.
 - [x] The physical CommandMic/Lab alpha.32 matrix passes stable connection,
   live gain 1–5, display/blink/dot restoration, fresh spectrum and absolute
   meters, WAV recording, Parrot capture/replay, volume 0–32 with startup 22,
@@ -63,10 +63,10 @@ None.
 
 - [x] Configure the public Git remote and push `main`.
 - [x] Confirm hosted CI on both the release pull request and merged `main`.
-- [x] Publish the CI-built `1.0.0rc1` wheel and source archive as a GitHub
+- [x] Publish the CI-built `1.0.0rc2` wheel and source archive as a GitHub
   prerelease with the exact remaining physical limitations and SHA-256 manifest.
 - [x] Download the public wheel, install it without the source tree, and verify
-  that it imports from site-packages as version `1.0.0rc1`.
+  that it imports from site-packages as version `1.0.0rc2`.
 - [ ] Publish to TestPyPI/PyPI and verify an index-based clean install. The
   GitHub prerelease is intentionally not a package-index publication.
 - [ ] Re-run the applicable physical gates from the exact release-candidate
@@ -75,11 +75,11 @@ None.
 
 ## Published release-candidate artifacts
 
-- Release: <https://github.com/Mason10198/ip-commandmic/releases/tag/v1.0.0rc1>
-- Wheel: `ip_commandmic-1.0.0rc1-py3-none-any.whl`, SHA-256
-  `6514be5b04c952c367897386667e301464436a3edab31bd4036b7c97a11da45c`
-- Source: `ip_commandmic-1.0.0rc1.tar.gz`, SHA-256
-  `8e6bdd2382d0287d6cae1a328e16c55aba5005c877e1511b6022c1f809725fac`
+- Release: <https://github.com/Mason10198/ip-commandmic/releases/tag/v1.0.0rc2>
+- Wheel: `ip_commandmic-1.0.0rc2-py3-none-any.whl`, SHA-256
+  `28e682b95298b2969f8d53069fe2b91fb04d038a4de070d7bf4671b0fb62e41e`
+- Source: `ip_commandmic-1.0.0rc2.tar.gz`, SHA-256
+  `be986a0a59a042e04e47abb036b481ace57cb9a63b5b2bea84e59d3c17cc121f`
 
 The tag is lightweight because the release environment had no configured
 signing key or GPG executable. Final `1.0.0` should use a maintainer-controlled
