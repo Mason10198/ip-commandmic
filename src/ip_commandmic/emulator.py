@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import ctypes
+import errno
 import json
 import logging
 import math
@@ -131,6 +132,10 @@ RADIO_AUDIO_OPEN = encode_audio_path("receive_open")
 RADIO_AUDIO_CLOSE = encode_audio_path("closed")
 RADIO_AUDIO_STATUS_OPEN = build_frame(0x02, 0x02, b"\x04")
 RADIO_AUDIO_STATUS_CLOSED = build_frame(0x02, 0x02, b"\x00")
+# E-031 observed the real radio closing the control gate roughly 8 ms after
+# its final RTP packet. Preserve a slightly conservative bounded tail so UDP
+# delivery cannot be overtaken by the TCP close on a busy host.
+RADIO_AUDIO_CLOSE_DELAY_SECONDS = 0.010
 RADIO_TX_ACTIVE = encode_audio_path("transmit_active")
 RADIO_TX_STATUS_ACTIVE = build_frame(0x02, 0x02, b"\x02")
 MIC_RTP_SSRC = 0x7069C2CC
@@ -659,6 +664,7 @@ class CommandMicEmulator:
                 duration_seconds=duration_seconds,
             )
         finally:
+            await _sleep_with_1ms_timer(RADIO_AUDIO_CLOSE_DELAY_SECONDS)
             await self._send_frames(
                 writer,
                 (RADIO_AUDIO_CLOSE, RADIO_AUDIO_STATUS_CLOSED),
@@ -680,6 +686,7 @@ class CommandMicEmulator:
         try:
             return await protocol.send_wav(path)
         finally:
+            await _sleep_with_1ms_timer(RADIO_AUDIO_CLOSE_DELAY_SECONDS)
             await self._send_frames(
                 writer,
                 (RADIO_AUDIO_CLOSE, RADIO_AUDIO_STATUS_CLOSED),
@@ -707,6 +714,7 @@ class CommandMicEmulator:
         try:
             return await protocol.send_payloads(payloads, source=source)
         finally:
+            await _sleep_with_1ms_timer(RADIO_AUDIO_CLOSE_DELAY_SECONDS)
             await self._send_frames(
                 writer,
                 (RADIO_AUDIO_CLOSE, RADIO_AUDIO_STATUS_CLOSED),
@@ -733,6 +741,7 @@ class CommandMicEmulator:
         try:
             return await protocol.send_payloads(payloads, source="polyphonic")
         finally:
+            await _sleep_with_1ms_timer(RADIO_AUDIO_CLOSE_DELAY_SECONDS)
             await self._send_frames(writer, (RADIO_AUDIO_CLOSE,), reason="interactive_polyphonic_close")
 
     async def press_interactive_key(
@@ -2480,16 +2489,20 @@ class CommandMicEmulator:
         try:
             return await connect(local_port)
         except OSError as exc:
-            # Windows can retain an actively closed four-tuple and reject an
-            # immediate endpoint restart as WinError 52 even with SO_REUSEADDR.
+            # An OS can retain an actively closed four-tuple and reject an
+            # immediate endpoint restart even with SO_REUSEADDR.
             # Preserve the observed source port in the normal path, but recover
-            # from that OS-only collision with an audited ephemeral source port.
-            if sys.platform != "win32" or getattr(exc, "winerror", None) != 52:
+            # from a bind collision with an audited ephemeral source port.
+            retained_tuple = (
+                getattr(exc, "winerror", None) == 52
+                or exc.errno == errno.EADDRINUSE
+            )
+            if not retained_tuple:
                 raise
             self.audit.write(
                 "source_port_fallback",
                 requested_port=local_port,
-                reason="windows_retained_tcp_tuple",
+                reason="retained_tcp_tuple",
                 error=str(exc),
             )
             return await connect(0)

@@ -11,6 +11,15 @@ Run it directly:
 python -m ip_commandmic.conformance --artifact-directory artifacts/conformance
 ```
 
+The topology binds `127.0.0.1`, `127.0.0.2`, and `127.0.0.3` so both endpoint
+roles can use the observed fixed ports. Linux and Windows provide these
+loopback addresses directly. On macOS, configure the additional aliases first:
+
+```sh
+sudo ifconfig lo0 alias 127.0.0.2 255.0.0.0
+sudo ifconfig lo0 alias 127.0.0.3 255.0.0.0
+```
+
 Longer hardware-free runs use the same checks and bounded parameters:
 
 ```powershell
@@ -66,7 +75,7 @@ The artifacts cover:
   and clean fresh media sessions in both directions;
 - fail-closed controls, PTT and receive-audio state after peer loss;
 - immediate software-radio endpoint restart and stable reconnection, including
-  an audited ephemeral-source-port fallback if Windows temporarily retains an
+  an audited ephemeral-source-port fallback if the host temporarily retains an
   observed fixed TCP tuple; and
 - fresh construction of both endpoint roles with alternating mic-first and
   radio-first startup, followed by stable display, key and audio transactions
