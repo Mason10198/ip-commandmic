@@ -37,13 +37,16 @@ contract and `RELEASE_READINESS.md` is the live gate ledger.
 1. Review `git status`, `git diff --check`, the archive member report and the
    public-data audit. Generated captures, WAV files and JSONL audits never enter
    the repository or distribution.
-2. Publish the candidate to TestPyPI first and install it by version into a new
+2. Publish a GitHub prerelease from the accepted commit using the exact CI-built
+   wheel and source archive, attach a SHA-256 manifest, then download and install
+   the public wheel into a new environment.
+3. Publish the candidate to TestPyPI first and install it by version into a new
    environment. Repeat the typed-composer smoke test and baseline conformance.
-3. Create the immutable Git tag only from the accepted commit. The tag, GitHub
+4. Create the immutable Git tag only from the accepted commit. The tag, GitHub
    release, wheel and sdist must all use the same version and SHA-256 values.
-4. Publish those exact files to PyPI. Do not rebuild between acceptance and
+5. Publish those exact files to PyPI. Do not rebuild between acceptance and
    upload.
-5. Verify a normal index install, documentation links and release hashes, then
+6. Verify a normal index install, documentation links and release hashes, then
    mark the matching readiness publication items complete.
 
 Repository remote creation, package-index credentials, branch protection and
