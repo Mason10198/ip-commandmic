@@ -69,7 +69,18 @@ _SYMBOL_MODULE = {
     for symbol in symbols
 }
 
-__all__ = tuple(_SYMBOL_MODULE)
+V1_ADVANCED_EXPORTS = (
+    "AuditLog",
+    "CommandMicEmulator",
+    "EmulatorConfig",
+    "VerifiedMicUdpProtocol",
+    "VerifiedRadioUdpProtocol",
+)
+V1_STABLE_EXPORTS = tuple(
+    symbol for symbol in _SYMBOL_MODULE if symbol not in V1_ADVANCED_EXPORTS
+)
+
+__all__ = (*tuple(_SYMBOL_MODULE), "V1_STABLE_EXPORTS", "V1_ADVANCED_EXPORTS")
 __version__ = "0.2.0a21"
 
 

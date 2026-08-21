@@ -11,7 +11,5 @@ rights to third-party trademarks, trade dress, manuals, firmware, programming
 software, or other proprietary materials.
 
 Protocol descriptions record independently observed interoperability facts.
-Bundled visual assets that reproduce or are derived from the appearance of
-Icom hardware are included only to depict the interoperable device. They are
-not offered as independently reusable brand or product artwork and should be
-reviewed or replaced before reuse outside this application.
+Device artwork and presentation assets live in separately licensed UI or Lab
+repositories and are not part of this protocol-library distribution.

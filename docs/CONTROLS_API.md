@@ -1,12 +1,15 @@
 # Python library API
 
-Status: public reference API for package version `0.2.0`.
+Status: public reference API for package version `0.2.0a21`.
 
 The `ip_commandmic` package is the implementation shared by the IP CommandMic
-Desktop, Web gateway, IP CommandMic Lab application, CLI, capture tools and tests.
+Desktop, Web gateway, IP CommandMic Lab application, capture tools and tests.
 Applications should use the endpoint classes below. They should use wire-level
 functions only for analyzers, dissectors, conformance tools or deliberate
 research interfaces.
+
+`V1_STABLE_EXPORTS` and `V1_ADVANCED_EXPORTS` provide a machine-readable split
+of the top-level package surface described by `V1_SCOPE.md`.
 
 ## Endpoint APIs
 
@@ -19,7 +22,17 @@ capture and PTT timing.
 
 ```python
 from pathlib import Path
+from time import monotonic, sleep
 from ip_commandmic import SoftwareCommandMicEndpoint
+
+
+def wait_until_ready(endpoint, timeout=10.0):
+    deadline = monotonic() + timeout
+    while monotonic() < deadline:
+        if endpoint.state.snapshot()["controls_ready"]:
+            return
+        sleep(0.05)
+    raise TimeoutError("CommandMic controls did not become ready")
 
 mic = SoftwareCommandMicEndpoint(
     local_ip="192.168.0.2",
@@ -30,6 +43,7 @@ mic = SoftwareCommandMicEndpoint(
     audit_path=Path("commandmic.jsonl"),
 )
 mic.start()
+wait_until_ready(mic)
 mic.key("p1", "press")
 mic.key("p1", "release")
 mic.ptt("press")
@@ -110,13 +124,24 @@ RTP receive, audio output and recording.
 
 ```python
 from pathlib import Path
+from time import monotonic, sleep
 from ip_commandmic import DisplayBuffer, SoftwareRadioConfig, SoftwareRadioEndpoint
+
+
+def wait_until_ready(endpoint, timeout=10.0):
+    deadline = monotonic() + timeout
+    while monotonic() < deadline:
+        if endpoint.state.snapshot()["controls_ready"]:
+            return
+        sleep(0.05)
+    raise TimeoutError("CommandMic controls did not become ready")
 
 radio = SoftwareRadioEndpoint(
     SoftwareRadioConfig(local_ip="192.168.0.1", mic_ip="192.168.0.2"),
     Path("software-radio.jsonl"),
 )
 radio.start()
+wait_until_ready(radio)
 radio.send_display(DisplayBuffer.from_primary_text("HELLO"))
 radio.send_led("green")
 radio.send_tone(1000, -24, 1.0)
@@ -142,8 +167,9 @@ fields remain available after the bounded 200-entry UI event history wraps
 during a long stream.
 
 `set_speaker_volume(0..32)` exposes the verified radio volume range to
-radio-side applications. Zero is digital mute and 32 is unity; the reference
-endpoint distributes levels 1–32 over an approximately perceptually uniform
+radio-side applications. The endpoint starts at 22 unless configured
+otherwise. Zero is digital mute and 32 is unity; the reference endpoint
+distributes levels 1–32 over an approximately perceptually uniform
 48 dB application-side range. That curve is a best-effort software policy,
 not a protocol claim, because the radio's exact acoustic transfer law is not
 yet measured. `handle_volume_keys=True`
@@ -238,15 +264,17 @@ dimensions or typed LED choices.
 `run_loopback_conformance(artifact_directory, timeout_seconds=12,
 sustained_audio_seconds=1, cold_restart_cycles=3)` starts both
 public endpoint roles on `127.0.0.1`/`127.0.0.2` with audio devices disabled and
-returns a JSON-safe `ConformanceReport`. It verifies stable startup, exact
-display bytes, LED state, ordinary key press/release, gated RTP in both
+returns a JSON-safe `ConformanceReport`. It verifies stable startup, a synthetic
+exact-display corpus, every LED/backlight state, all 23 ordinary keys, Power,
+microphone gain 1–5, gated RTP in both
 directions, injected nonzero application PCM, producer overwrite, fail-silent
 underrun, RTP continuity, PTT release, fail-closed
 disconnect, deterministic microphone-RTP drop/duplicate/reorder detection,
 clean post-impairment recovery, mid-stream cancellation with fail-closed media
 finalization and no post-stop RTP, clean same-object restart in both directions,
-immediate software-radio reconnect, and fresh-object reconstruction with
-alternating startup order plus display/key/audio validation. Sustained duration
+immediate software-radio reconnect, routed TCP/UDP interruption, abrupt child-
+process replacement, and fresh-object reconstruction with alternating startup
+order plus display/key/audio validation. Sustained duration
 is bounded to 1–1800 seconds per direction and fresh-object cycles to 1–100. Each
 `ConformanceCheck` is `passed`, `failed`, or `not_covered`; callers must inspect
 the per-check status rather than interpreting `report.passed` as exhaustive
@@ -288,7 +316,7 @@ in `ip_commandmic.controls`; GUIs do not maintain their own wire-code tables.
 from ip_commandmic import (
     Direction, build_frame, encode_key_state, encode_key_tap,
     encode_display_transaction, encode_status_led, encode_backlight_state,
-    encode_ptt_state, encode_power_state, encode_audio_path,
+    encode_mic_gain_transaction, encode_ptt_state, encode_power_state, encode_audio_path,
     encode_message, parse_stream, stuff_bytes, unstuff_bytes,
 )
 ```
@@ -299,8 +327,9 @@ from ip_commandmic import (
 - `encode_message(message)` round-trips original bytes.
 - `build_frame(class_, command, payload, start_byte=0xf3)` is the expert encoder.
 - `encode_key_state()` and `encode_key_tap()` are verified typed composers.
-- Display, LED, backlight, PTT, Power and audio-path families have corresponding
-  typed `encode_*` composers; endpoint methods remain preferred for sessions.
+- Display, LED, backlight, microphone-gain, PTT, Power and audio-path families
+  have corresponding typed `encode_*` composers; endpoint methods remain
+  preferred for sessions.
 - `RADIO_IDLE_HEARTBEAT` and `MIC_IDLE_HEARTBEAT` are exported reference frames.
 
 Unknown messages are not discarded. `Message.raw`, `body`, framing/checksum

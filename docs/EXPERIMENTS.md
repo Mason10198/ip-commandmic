@@ -12,9 +12,9 @@ the Lab app against the physical mic. New findings must reach
 `PROTOCOL.md`, `MESSAGE_CATALOG.md`, typed library models/composers, fixtures and
 the dissector before a GUI-specific behavior is accepted.
 
-All control trials currently use the private codeplug identified in
-[BASELINE_CONFIGURATION.md](BASELINE_CONFIGURATION.md). Capture notes must name
-a different configuration record if that codeplug changes.
+All control trials use a private baseline-configuration record retained outside
+this public repository. Capture notes must name a different private record if
+that codeplug changes.
 
 ## Safety gate
 

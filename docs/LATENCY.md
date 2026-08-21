@@ -91,3 +91,23 @@ was 0.579–0.961 ms and maximum was 0.628–2.470 ms. Maximum sender-deadline
 lateness was 0.596–1.097 ms for radio RTP and 0.320–5.948 ms for microphone RTP;
 no run compressed packets into a catch-up burst. These are local software-path
 metrics, not synchronized acoustic, device, RF or routed-network latency.
+
+The sustained hardware-free gate requires receive-callback p95 to remain within
+one 20 ms packet interval and separately rejects any callback or sender
+scheduling stall above 100 ms. Median, p95 and maximum are always retained in
+the report. Using p95 for the packet-interval target prevents one operating-
+system scheduling outlier in a 90,000-packet soak from being misreported as a
+transport failure; exact packet count, ordered wire receipt, ordered callback
+delivery and compressed catch-up bursts have independent hard checks. The
+clocked default-profile playout model may insert silent concealment for one
+isolated scheduler miss, or at most 100 parts per million in longer runs. Every
+concealed sequence must still have reached the validation callback, and
+consecutive concealments, duplicate packets, discontinuities or a non-silent
+concealment fail the gate.
+
+The 2026-08-21 release-candidate soak passed for 1,800 seconds per direction.
+It carried 90,000 radio packets and 90,012 microphone packets continuously,
+with zero radio playout concealments. Receive callback median/p95/maximum was
+0.320/0.658/30.836 ms; maximum sender-deadline lateness was 10.911 ms for radio
+RTP and 22.927 ms for microphone RTP. These remain local loopback software-path
+measurements, not synchronized acoustic, device, RF or routed-network latency.

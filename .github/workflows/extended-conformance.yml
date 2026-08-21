@@ -1,0 +1,37 @@
+name: Extended conformance
+
+on:
+  schedule:
+    - cron: "17 6 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  loopback-soak:
+    name: 30-minute-per-direction loopback soak
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+      - name: Install package
+        run: python -m pip install --disable-pip-version-check -e ".[dev,audio]"
+      - name: Run extended endpoint conformance
+        run: >-
+          python -m ip_commandmic.conformance
+          --artifact-directory artifacts/extended-conformance
+          --sustained-audio-seconds 1800
+          --cold-restart-cycles 10
+          --timeout 1820
+      - name: Retain conformance report and audits
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: extended-conformance
+          path: artifacts/extended-conformance
+          if-no-files-found: error

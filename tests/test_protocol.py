@@ -13,7 +13,9 @@ from ip_commandmic.protocol import (
     encode_audio_path,
     encode_backlight_state,
     encode_display_transaction,
+    encode_key_state,
     encode_message,
+    encode_mic_gain_transaction,
     encode_power_state,
     encode_ptt_state,
     encode_status_led,
@@ -117,9 +119,36 @@ class ProtocolTests(unittest.TestCase):
             self.assertTrue(messages[0].framing_valid)
             self.assertTrue(messages[0].checksum_valid)
 
+    def test_sanitized_typed_message_fixture_matches_every_composer(self):
+        fixture_path = Path(__file__).parent / "fixtures" / "typed_messages.json"
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        observed: dict[str, list[bytes]] = {}
+        for item in fixture["messages"]:
+            raw = bytes.fromhex(item["raw_hex"])
+            messages, remainder = parse_stream(raw, item["direction"])
+            self.assertFalse(remainder)
+            self.assertEqual(item["kind"], messages[0].kind.value)
+            self.assertTrue(messages[0].checksum_valid)
+            self.assertEqual(raw, encode_message(messages[0]))
+            observed.setdefault(item["name"], []).append(raw)
+
+        self.assertEqual([encode_key_state("p1", "press")], observed["key_p1_press"])
+        self.assertEqual([encode_ptt_state("press")], observed["ptt_press"])
+        self.assertEqual([encode_power_state("release")], observed["power_release"])
+        self.assertEqual(
+            list(encode_display_transaction(DisplayBuffer(b"V1FIXTUR" + bytes(60)))),
+            observed["display"],
+        )
+        self.assertEqual([encode_status_led("orange")], observed["status_orange"])
+        self.assertEqual([encode_backlight_state("dim")], observed["backlight_dim"])
+        self.assertEqual(list(encode_mic_gain_transaction(3)), observed["mic_gain_3"])
+        self.assertEqual(
+            [encode_audio_path("receive_open")], observed["audio_receive_open"]
+        )
+
     def test_verified_stuffing_and_crc(self):
         wire = bytes.fromhex(
-            "f341710502001a010101ff0fff0fff0fff0f60cc49636f6d20496e63010090c71243595a680c50fd"
+            "f341710502001a010101ff0fff0fff0fff0f60cc49636f6d20496e63010200000000015a683f7dfd"
         )
         message = classify_message(wire, "mic")
         self.assertTrue(message.framing_valid)

@@ -47,7 +47,7 @@ class SoftwareRadioConfig:
     startup_opening_text: str = ""
     startup_idle_text: str = ""
     startup_status_carousel: bool = False
-    speaker_volume: int = 32
+    speaker_volume: int = 22
     handle_volume_keys: bool = False
     idle_display_text: str = ""
 
@@ -70,7 +70,7 @@ class EndpointState:
             "last_mic_capture": None,
             "recording": False,
             "recorded_packets": 0,
-            "speaker_volume": 32,
+            "speaker_volume": 22,
             "mic_gain": 3,
             "parrot_enabled": False,
             "parrot_status": "disabled",
@@ -574,6 +574,15 @@ class SoftwareRadioEndpoint:
             raise RuntimeError("test protocol runtime is not running")
         return asyncio.run_coroutine_threadsafe(coroutine, self._loop).result(timeout)
 
+    @staticmethod
+    def _audio_action_timeout(duration_seconds: float) -> float:
+        """Allow a paced media operation to finish plus bounded control overhead."""
+
+        duration = float(duration_seconds)
+        if not math.isfinite(duration) or duration <= 0.0:
+            return 35.0
+        return max(35.0, duration + 10.0)
+
     def send_display(self, display: DisplayBuffer | bytes) -> None:
         emulator = self._emulator
         if emulator is None:
@@ -614,11 +623,16 @@ class SoftwareRadioEndpoint:
         if gain == 0.0:
             return 0
         adjusted_level = float(level) + 20.0 * math.log10(gain)
-        return int(self._run_action(emulator.send_interactive_audio_tone(
-            frequency_hz=frequency,
-            level_dbfs=adjusted_level,
-            duration_seconds=duration,
-        )))
+        return int(
+            self._run_action(
+                emulator.send_interactive_audio_tone(
+                    frequency_hz=frequency,
+                    level_dbfs=adjusted_level,
+                    duration_seconds=duration,
+                ),
+                timeout=self._audio_action_timeout(duration),
+            )
+        )
 
     def send_wav(self, path: str) -> int:
         emulator = self._emulator
@@ -630,9 +644,12 @@ class SoftwareRadioEndpoint:
         scaled = self._scale_payloads(payloads, volume)
         if not scaled:
             return 0
-        return int(self._run_action(
-            emulator.send_interactive_audio_payloads(scaled, source="wav")
-        ))
+        return int(
+            self._run_action(
+                emulator.send_interactive_audio_payloads(scaled, source="wav"),
+                timeout=self._audio_action_timeout(len(scaled) * 0.020),
+            )
+        )
 
     def send_audio_file(self, path: str) -> int:
         """Decode and send a bounded common audio file through the shared layer."""
@@ -646,9 +663,12 @@ class SoftwareRadioEndpoint:
         scaled = self._scale_payloads(payloads, volume)
         if not scaled:
             return 0
-        return int(self._run_action(
-            emulator.send_interactive_audio_payloads(scaled, source="audio_file")
-        ))
+        return int(
+            self._run_action(
+                emulator.send_interactive_audio_payloads(scaled, source="audio_file"),
+                timeout=self._audio_action_timeout(len(scaled) * 0.020),
+            )
+        )
 
     def send_polyphonic(
         self,
@@ -665,9 +685,15 @@ class SoftwareRadioEndpoint:
         if gain == 0.0:
             return 0
         adjusted_level = float(level_dbfs) + 20.0 * math.log10(gain)
-        return int(self._run_action(
-            emulator.send_interactive_polyphonic(steps, level_dbfs=adjusted_level)
-        ))
+        duration_seconds = sum(delay + length for delay, length, _ in steps) / 1000.0
+        return int(
+            self._run_action(
+                emulator.send_interactive_polyphonic(
+                    steps, level_dbfs=adjusted_level
+                ),
+                timeout=self._audio_action_timeout(duration_seconds),
+            )
+        )
 
     def start_recording(self, output: str) -> dict[str, Any]:
         with self._record_lock:

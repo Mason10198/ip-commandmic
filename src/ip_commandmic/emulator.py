@@ -144,10 +144,17 @@ MIC_STARTUP_SYNC = (
     build_frame(0x01, 0x01, b"\x1f"),
     build_frame(0x05, 0x06, b"\x00"),
 )
+# Never publish or replay a captured device address. The locally administered
+# unicast address below preserves the observed identity-frame shape while
+# remaining explicitly synthetic. Acceptance by a physical radio is a v1
+# release-candidate gate, not a claim made by the hardware-free test suite.
+SYNTHETIC_MIC_MAC = bytes.fromhex("020000000001")
 MIC_IDENTITY = build_frame(
     0x05,
     0x02,
-    bytes.fromhex("010101ffffffff60cc49636f6d20496e63010090c71243595a68"),
+    bytes.fromhex("010101ffffffff60cc49636f6d20496e6301")
+    + SYNTHETIC_MIC_MAC
+    + bytes.fromhex("5a68"),
 )
 MIC_PROBE_RESPONSE = (
     bytes.fromhex("f54171ee0503011897fd"),

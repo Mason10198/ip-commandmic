@@ -22,12 +22,23 @@ python -m ip_commandmic.conformance --artifact-directory artifacts/stress `
 `--cold-restart-cycles` accepts 1–100 fresh endpoint-object cycles. The normal
 baseline uses one second and three cycles so CI remains fast.
 
-The JSON report and the two JSONL audits cover:
+The CLI writes `report.json` beside the two JSONL audits and also prints the
+same JSON to standard output. On 2026-08-21 the release-candidate configuration
+passed all 19 checks in 3,676.282 seconds with 1,800 seconds per media direction
+and ten cold restart cycles. Its sustained check carried 90,000 continuous
+radio RTP packets and 90,012 continuous microphone RTP packets, with zero
+radio playout concealments. Receive callback median/p95/maximum was
+0.320/0.658/30.836 ms and radio/microphone sender maximum lateness was
+10.911/22.927 ms. These are hardware-free local software-path measurements.
+
+The artifacts cover:
 
 - observed probe-to-stable startup and controls-ready state;
-- an exact, icon-free 68-byte display transaction;
-- red and off status-LED states;
-- ordinary P1 press and release;
+- three exact synthetic 68-byte display buffers, including non-text bytes;
+- all four status-LED states and all three backlight states;
+- all 23 ordinary key press/release identities, separately typed Power, and no
+  Emergency emission;
+- all five verified microphone-gain transactions through the public wrapper;
 - deterministic TCP fragmentation and multi-frame coalescing in both directions,
   verified through exact display and key-state operations;
 - radio-to-CommandMic receive-open, two paced RTP packets, and close;
@@ -41,8 +52,14 @@ The JSON report and the two JSONL audits cover:
   zero sequence/timestamp errors;
 - configurable sustained load in both directions (one second/50 radio packets
   in the baseline; ten seconds/500 radio packets in the accepted stress run),
-  continuous RTP, no catch-up burst, bounded sender lateness and receive
-  callback median/p95/maximum latency metrics;
+  exact ordered RTP wire receipt and callback delivery, no catch-up burst,
+  bounded sender lateness and receive callback median/p95/maximum latency
+  metrics; arrival timing uses an ordered timeline so the 90,000-packet
+  extended run remains lossless across 16-bit RTP sequence wraparound. The
+  clocked two-packet playout model separately permits at most one isolated
+  silent operating-system scheduling concealment, or 100 parts per million in
+  longer runs; consecutive concealments, wire loss, duplicate delivery,
+  reordering and discontinuity remain failures;
 - mid-PTT CommandMic cancellation and mid-speaker-stream radio cancellation,
   including bounded endpoint shutdown, immediate fail-closed PTT/control/audio
   gates, no post-stop RTP, finalized capture/playout state, same-object restart
@@ -53,26 +70,27 @@ The JSON report and the two JSONL audits cover:
   observed fixed TCP tuple; and
 - fresh construction of both endpoint roles with alternating mic-first and
   radio-first startup, followed by stable display, key and audio transactions
-  on every cycle.
+  on every cycle;
+- routed-link interruption that tears down and rejects TCP sessions while
+  blackholing UDP, followed by fail-closed state and clean restoration; and
+- abrupt CommandMic child-process termination and replacement while the
+  radio-side process remains alive, followed by stable display and key traffic.
 
 The report uses `passed`, `failed`, and `not_covered` per check. A report may
 pass while containing `not_covered`; consumers must inspect individual checks.
 The current baseline has no `not_covered` check: both media directions run
 without local audio hardware through the public wrappers.
 
-This baseline is not the exhaustive product gate. Remaining conformance work:
+The hardware-free v1 gate is complete, but this baseline is not the exhaustive
+product gate. Remaining conformance work:
 
-1. complete the full 30-minute soak; configurable per-direction stress now
-   passes at 10 seconds/500 radio packets/512 microphone packets, while
-   synchronized hardware end-to-end latency remains a separate physical gate;
-2. test every ordinary key, hold/repeat/chord behavior, Power semantics and the
-   complete sanitized display corpus through the public wrappers;
-3. run true subprocess/network-interruption matrices and the 30-minute
-   idle/active soak; ten fresh-object cycles with alternating startup order now
-   pass;
-4. run the separate physical-CommandMic/Lab and real-radio/Desktop matrices,
+1. run the separate physical-CommandMic/Lab and real-radio/Desktop matrices,
    including synchronized latency and calibrated volume/acoustic measurements;
-5. keep Emergency and other safety-critical traffic behind their separately
+2. complete ten physical restart/PoE cycles and a 30-minute physical
+   idle/active soak for each endpoint role;
+3. expand the synthetic display corpus and map hold/repeat/chord cases as
+   post-v1 research unless the supported v1 contract is broadened; and
+4. keep Emergency and other safety-critical traffic behind their separately
    authorized test phase.
 
 Raw captures, codeplugs and hardware-derived private artifacts are not inputs to

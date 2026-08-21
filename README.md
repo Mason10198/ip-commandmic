@@ -19,9 +19,14 @@ endorsed by Icom Incorporated.
 - `docs/MESSAGE_CATALOG.md`: byte layouts, confidence and examples;
 - `docs/CONTROLS_API.md`: public Python API;
 - `docs/CONFORMANCE.md`: hardware-free endpoint baseline and remaining gates;
+- `docs/V1_SCOPE.md`: stable 1.x API boundary, release gates and exclusions;
+- `docs/RELEASE_READINESS.md`: live v1 completion and publication checklist;
+- `docs/RELEASING.md`: reproducible candidate verification and publication procedure;
 - `docs/MASTER_PLAN.md`: phased reverse-engineering and acceptance plan;
 - `wireshark/ip_commandmic.lua`: independent Wireshark dissector;
 - `tests`: sanitized fixtures and regression/conformance tests.
+
+Package-level changes are summarized in [`CHANGELOG.md`](CHANGELOG.md).
 
 Applications and shared presentation live separately:
 
@@ -52,6 +57,7 @@ Run the public-wrapper loopback baseline without hardware or audio devices:
 
 ```python
 from pathlib import Path
+from time import monotonic, sleep
 from ip_commandmic import SoftwareCommandMicEndpoint
 
 mic = SoftwareCommandMicEndpoint(
@@ -63,6 +69,11 @@ mic = SoftwareCommandMicEndpoint(
     audit_path=Path("commandmic.jsonl"),
 )
 mic.start()
+deadline = monotonic() + 10.0
+while not mic.state.snapshot()["controls_ready"] and monotonic() < deadline:
+    sleep(0.05)
+if not mic.state.snapshot()["controls_ready"]:
+    raise TimeoutError("CommandMic controls did not become ready")
 mic.key("p1", "press")
 mic.key("p1", "release")
 mic.stop()

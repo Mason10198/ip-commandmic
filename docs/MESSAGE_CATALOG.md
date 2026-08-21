@@ -175,8 +175,8 @@ Mic Gain 4 startup sequences differed at exactly this transaction:
 | Backlight OFF | `00` | LCD content remained very dimly visible; keypad illumination off |
 | Backlight ON | `02` | LCD and keypad continuously illuminated |
 
-The LCD controller and segment updates remain active in OFF mode; `N5LSN` and
-`QTH NODE` were still sent normally. The faint visibility is described as an
+The LCD controller and segment updates remain active in OFF mode; the configured
+opening text and `QTH NODE` were still sent normally. The faint visibility is described as an
 observation, not as evidence that OFF selects the separate CPS `Dim` mode.
 An OFF Auto trial then confirmed the state-command interpretation: startup sent
 `02`, followed 5.005 seconds later by `00`; P1 sent `02` 8.363 ms after
@@ -287,7 +287,7 @@ packets were continuous, carried 160 samples each, and decoded at exactly
 
 Power application and the physical Power key are distinct behaviors. When DC
 was removed while the radio was last soft-powered on, reapplying DC caused a
-complete unattended network/UI boot: the mic displayed `N5LSN`, then
+complete unattended network/UI boot: the mic displayed its configured opening text, then
 `QTH NODE`, and entered stable heartbeat exchange. The operator pressed no key
 and no `01/09` message occurred. A subsequent operator differential found that
 soft-powering the radio off before removing/reapplying DC left it off. The best
@@ -360,7 +360,7 @@ warning and six distinct unknown tails:
 |---|---|---|---|
 | 8–27 | all `20` or all `00` | keypad-entry screens versus ordinary screens | Exact correlation; layout meaning unresolved |
 | 32/33 | one byte `80` | alternate keypad-entry stages | Exact correlation; cursor/attribute meaning unresolved |
-| 56 | `00` | real-radio opening `N5LSN`; controlled `QTH NODE` | No LOW, audible, or RSSI indicator during controlled state |
+| 56 | `00` | real-radio configured opening text; controlled `QTH NODE` | No LOW, audible, or RSSI indicator during controlled state |
 | 56 | `08` | controlled candidate-bit state | `LOW` only |
 | 56 | `80` | controlled candidate-bit state | zero-bar RSSI symbol only |
 | 56 | `88` | ordinary channel/zone/volume and emulator screens | `LOW` plus zero-bar RSSI symbol |
@@ -599,7 +599,12 @@ the capture boundary. Observed one-digit volume screens are exposed as
 `volume_level` / `ipcommandmic.volume_level`; the supported level range remains
 unknown.
 
-## Startup messages with unknown semantics
+## Startup message inventory
+
+Mapped rows retain their verified names below; the remaining rows are preserved
+without speculative semantics. The stable composer cross-reference is in
+`PROTOCOL.md`, and identity-free examples are retained in
+`tests/fixtures/typed_messages.json`.
 
 | Direction | Start | Class/command | Length | Observed payload variants | Count |
 |---|---:|---|---:|---|---:|
@@ -610,7 +615,7 @@ unknown.
 | Radio → mic | `f3` | `02/06` | 4 | `01000000` | 2 |
 | Radio → mic | `f3` | `02/07` | 1 | `02` | 3 |
 | Radio → mic | `f3` | `02/08` | 2 | `0044` | 2 |
-| Radio → mic | `f3` | `02/0a` | 68 | Buffers containing `N5LSN` or `QTH NODE` | 2 |
+| Radio → mic | `f3` | `02/0a` | 68 | Buffers containing configured opening text or `QTH NODE` | 2 |
 | Radio → mic | `f3` | `02/0b` | 1 | `00`=off, `01`=dim, `02`=on | startup and key-triggered control |
 | Radio → mic | `f3` | `02/0d` | 3 | `000401` | 1 |
 | Radio → mic | `f3` | `02/0e` | 1 | Gain N: first `N`, then `N+1`, verified for N=1 through 5 | 2 per startup |
@@ -623,7 +628,7 @@ unknown.
 | Mic → radio | `f3` | `01/01` | 1 | `7f`, `1f` | 4 |
 | Mic → radio | `f3` | `01/0a` | 1 | `00` | 2 |
 | Mic → radio | `f3` | `02/09` | 1 | `01` | 2 |
-| Mic → radio | `f3` | `05/02` | 26 | Includes `Icom Inc` and mic MAC `0090c7124359` | 2 |
+| Mic → radio | `f3` | `05/02` | 26 | Includes `Icom Inc`; public fixture uses synthetic local MAC `02:00:00:00:00:01` | 2 |
 | Mic → radio | `f3` | `05/06` | 1 | `00` | 2 |
 | Mic → radio | `f5` | `05/04` | 1 | `01` | 1 |
 

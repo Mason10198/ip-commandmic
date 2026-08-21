@@ -31,6 +31,7 @@ from ip_commandmic.emulator import (
     MIC_IDENTITY,
     MIC_PROBE_RESPONSE,
     MIC_STARTUP_SYNC,
+    SYNTHETIC_MIC_MAC,
     CommandMicEmulator,
     EmulatorConfig,
     VerifiedRadioUdpProtocol,
@@ -745,6 +746,9 @@ class EmulatorTests(unittest.TestCase):
         self.assertEqual("807d08f14d5a659c7069c2cc", MIC_BOOT_RTP[:12].hex())
         self.assertFalse(any(MIC_BOOT_RTP[12:]))
         self.assertEqual("f341710502001a", MIC_IDENTITY[:7].hex())
+        self.assertEqual(6, len(SYNTHETIC_MIC_MAC))
+        self.assertEqual(0x02, SYNTHETIC_MIC_MAC[0] & 0x03)
+        self.assertEqual(SYNTHETIC_MIC_MAC, classify_message(MIC_IDENTITY, "mic").body[18:24])
         self.assertEqual("f341710209000101e9ff0afd", MIC_DISPLAY_ACK.hex())
 
     def test_verified_display_frame_matches_capture(self):
@@ -760,9 +764,9 @@ class EmulatorTests(unittest.TestCase):
         emulator = CommandMicEmulator(
             EmulatorConfig("radio", "127.0.0.1", "127.0.0.2")
         )
-        frame = emulator._display_frame("N5LSN", tail=bytes(60))
+        frame = emulator._display_frame("OPENING", tail=bytes(60))
         message = classify_message(frame, Direction.RADIO_TO_MIC)
-        self.assertEqual("N5LSN", message.metadata["display_text"])
+        self.assertEqual("OPENING", message.metadata["display_text"])
         self.assertEqual(bytes(60).hex(), message.metadata["display_unknown_hex"])
 
 
@@ -1523,7 +1527,7 @@ class EmulatorLoopbackTests(unittest.IsolatedAsyncioTestCase):
             await writer.drain()
             await asyncio.wait_for(reader.readexactly(len(MIC_IDENTITY)), 1.0)
 
-            display = DISPLAY_BEFORE + emulator._display_frame("N5LSN") + DISPLAY_AFTER
+            display = DISPLAY_BEFORE + emulator._display_frame("OPENING") + DISPLAY_AFTER
             writer.write(display)
             await writer.drain()
             self.assertEqual(
@@ -1725,10 +1729,7 @@ class EmulatorLoopbackTests(unittest.IsolatedAsyncioTestCase):
                 RADIO_STARTUP_READY,
                 await asyncio.wait_for(reader.readexactly(len(RADIO_STARTUP_READY)), 1.0),
             )
-            identity = bytes.fromhex(
-                "010101ffffffff60cc49636f6d20496e63010090c71243595a68"
-            )
-            writer.write(build_frame(0x05, 0x02, identity))
+            writer.write(MIC_IDENTITY)
             await writer.drain()
             expected_head = b"".join(RADIO_PROBE_HEAD)
             self.assertEqual(
@@ -2148,10 +2149,7 @@ class EmulatorLoopbackTests(unittest.IsolatedAsyncioTestCase):
             writer.write(build_frame(0x05, 0x06, b"\x00"))
             await writer.drain()
             await reader.readexactly(len(RADIO_STARTUP_READY))
-            identity = bytes.fromhex(
-                "010101ffffffff60cc49636f6d20496e63010090c71243595a68"
-            )
-            writer.write(build_frame(0x05, 0x02, identity))
+            writer.write(MIC_IDENTITY)
             await writer.drain()
 
             received = b""

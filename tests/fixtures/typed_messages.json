@@ -1,0 +1,72 @@
+{
+  "fixture_version": 1,
+  "description": "Synthetic, identity-free examples for every v1 typed control composer",
+  "messages": [
+    {
+      "name": "key_p1_press",
+      "direction": "mic_to_radio",
+      "kind": "key_state",
+      "raw_hex": "f34171010100010288ff0cfd"
+    },
+    {
+      "name": "ptt_press",
+      "direction": "mic_to_radio",
+      "kind": "ptt_state",
+      "raw_hex": "f34171010000010175bdfd"
+    },
+    {
+      "name": "power_release",
+      "direction": "mic_to_radio",
+      "kind": "power_state",
+      "raw_hex": "f341710109000100297ffd"
+    },
+    {
+      "name": "display",
+      "direction": "radio_to_mic",
+      "kind": "display_sync",
+      "raw_hex": "f34171020700010200b8fd"
+    },
+    {
+      "name": "display",
+      "direction": "radio_to_mic",
+      "kind": "display_update",
+      "raw_hex": "f34171020a00445631464958545552000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000d283fd"
+    },
+    {
+      "name": "display",
+      "direction": "radio_to_mic",
+      "kind": "display_sync",
+      "raw_hex": "f3417102080002004420a5fd"
+    },
+    {
+      "name": "status_orange",
+      "direction": "radio_to_mic",
+      "kind": "audio_status",
+      "raw_hex": "f3417102020001060fb9fd"
+    },
+    {
+      "name": "backlight_dim",
+      "direction": "radio_to_mic",
+      "kind": "backlight_state",
+      "raw_hex": "f34171020b00010151ff0bfd"
+    },
+    {
+      "name": "mic_gain_3",
+      "direction": "radio_to_mic",
+      "kind": "mic_gain",
+      "raw_hex": "f34171020e0001035c7afd"
+    },
+    {
+      "name": "mic_gain_3",
+      "direction": "radio_to_mic",
+      "kind": "mic_gain",
+      "raw_hex": "f34171020e0001049e3bfd"
+    },
+    {
+      "name": "audio_receive_open",
+      "direction": "radio_to_mic",
+      "kind": "audio_state",
+      "raw_hex": "f341710104000401000000743ffd"
+    }
+  ]
+}

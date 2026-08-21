@@ -35,6 +35,8 @@ local f_display_control_67 = ProtoField.uint8("ipcommandmic.display.control_67",
 local f_volume_level = ProtoField.uint8("ipcommandmic.volume_level", "Verified volume level", base.DEC)
 local f_ptt_active = ProtoField.bool("ipcommandmic.ptt_active", "PTT active")
 local f_ptt_action = ProtoField.string("ipcommandmic.ptt_action", "PTT action")
+local f_audio_state = ProtoField.string("ipcommandmic.audio_state", "Verified audio-path state")
+local f_audio_path_open = ProtoField.bool("ipcommandmic.audio_path_open", "Audio path open")
 local f_power_active = ProtoField.bool("ipcommandmic.power_active", "Power button active")
 local f_power_action = ProtoField.string("ipcommandmic.power_action", "Power action")
 local f_mic_gain_value = ProtoField.uint8("ipcommandmic.mic_gain.value", "Mic gain value", base.DEC)
@@ -84,6 +86,8 @@ ipcommandmic.fields = {
     f_volume_level,
     f_ptt_active,
     f_ptt_action,
+    f_audio_state,
+    f_audio_path_open,
     f_power_active,
     f_power_action,
     f_mic_gain_value,
@@ -343,6 +347,15 @@ function ipcommandmic.dissector(buffer, pinfo, tree)
                 and decoded[5] == 0x00 and declared_length == 1
                 and (decoded[8] == 0x00 or decoded[8] == 0x01) then
                 kind = "ptt_state"
+            elseif ordinary and direction == "radio_to_mic" and decoded[4] == 0x01
+                and decoded[5] == 0x04 and declared_length == 4
+                and ((decoded[8] == 0x00 and decoded[9] == 0x00
+                        and decoded[10] == 0x00 and decoded[11] == 0x00)
+                    or (decoded[8] == 0x01 and decoded[9] == 0x00
+                        and decoded[10] == 0x00 and decoded[11] == 0x00)
+                    or (decoded[8] == 0x08 and decoded[9] == 0x00
+                        and decoded[10] == 0x00 and decoded[11] == 0x00)) then
+                kind = "audio_state"
             elseif ordinary and direction == "mic_to_radio" and decoded[4] == 0x01
                 and decoded[5] == 0x09 and declared_length == 1
                 and (decoded[8] == 0x00 or decoded[8] == 0x01) then
@@ -414,6 +427,15 @@ function ipcommandmic.dissector(buffer, pinfo, tree)
                 elseif kind == "ptt_state" then
                     subtree:add(f_ptt_active, decoded[8] == 0x01)
                     subtree:add(f_ptt_action, decoded[8] == 0x01 and "press" or "release")
+                elseif kind == "audio_state" then
+                    local audio_state = "closed"
+                    if decoded[8] == 0x01 then
+                        audio_state = "receive_open"
+                    elseif decoded[8] == 0x08 then
+                        audio_state = "transmit_active"
+                    end
+                    subtree:add(f_audio_state, audio_state)
+                    subtree:add(f_audio_path_open, decoded[8] ~= 0x00)
                 elseif kind == "power_state" then
                     subtree:add(f_power_active, decoded[8] == 0x01)
                     subtree:add(

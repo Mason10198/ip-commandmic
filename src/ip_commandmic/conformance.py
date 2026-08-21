@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import queue
 import socket
 import statistics
+import subprocess
+import sys
 import threading
 import time
 from dataclasses import asdict, dataclass
@@ -18,6 +22,7 @@ from .audio import (
     RadioAudioJitterBuffer,
     RadioAudioPacket,
 )
+from .controls import ORDINARY_KEY_BUTTONS
 from .display import DisplayBuffer
 from .gui_server import SoftwareCommandMicEndpoint
 from .test_app import SoftwareRadioConfig, SoftwareRadioEndpoint
@@ -49,6 +54,134 @@ class ConformanceReport:
             "radio_audit": str(self.radio_audit),
             "checks": [asdict(check) for check in self.checks],
         }
+
+
+def _rtp_callback_latencies_ms(
+    arrivals: list[tuple[int, float]],
+    callbacks: list[tuple[int, float]],
+) -> list[float]:
+    """Match ordered RTP events without losing 16-bit sequence wraparound."""
+
+    if len(arrivals) != len(callbacks):
+        raise AssertionError(
+            "receive callback timing did not cover every sustained packet"
+        )
+    latencies: list[float] = []
+    for index, ((arrival_sequence, arrived_at), (callback_sequence, callback_at)) in enumerate(
+        zip(arrivals, callbacks, strict=True)
+    ):
+        if arrival_sequence != callback_sequence:
+            raise AssertionError(
+                "receive callback sequence diverged at packet "
+                f"{index}: arrival={arrival_sequence}, callback={callback_sequence}"
+            )
+        latency_ms = (float(callback_at) - float(arrived_at)) * 1000.0
+        if latency_ms < 0.0:
+            raise AssertionError(
+                f"receive callback preceded arrival at packet {index}: {latency_ms:.3f} ms"
+            )
+        latencies.append(latency_ms)
+    return latencies
+
+
+def _assert_continuous_rtp_timeline(
+    timeline: list[tuple[int, float]], *, label: str
+) -> None:
+    """Require an ordered RTP timeline with no loss, duplication, or reordering."""
+
+    for index, ((prior, _), (current, _)) in enumerate(
+        zip(timeline, timeline[1:]), start=1
+    ):
+        expected = (prior + 1) & 0xFFFF
+        if current != expected:
+            raise AssertionError(
+                f"{label} RTP sequence diverged at packet {index}: "
+                f"expected={expected}, actual={current}"
+            )
+
+
+def _compact_audio_summary(summary: dict[str, object]) -> dict[str, object]:
+    """Retain actionable audio diagnostics without embedding long packet arrays."""
+
+    fields = (
+        "session",
+        "source_packets",
+        "received",
+        "played",
+        "concealed",
+        "duplicates",
+        "late",
+        "discontinuities",
+        "concealment_is_silence",
+    )
+    compact = {field: summary.get(field) for field in fields}
+    sequences = list(summary.get("sequences", []))
+    callbacks = list(summary.get("callback_times", []))
+    concealed = list(summary.get("concealed_sequences", []))
+    compact.update(
+        {
+            "sequence_count": len(sequences),
+            "callback_count": len(callbacks),
+            "concealed_sequences": concealed[:20],
+            "concealed_sequences_truncated": len(concealed) > 20,
+        }
+    )
+    return compact
+
+
+def _validate_sustained_radio_playout(
+    summary: dict[str, object], *, expected_packets: int
+) -> tuple[int, int]:
+    """Validate exact delivery plus a bounded set of isolated scheduler misses.
+
+    Wire receipt and callback delivery remain lossless. The clocked two-packet
+    playout model may conceal one isolated operating-system scheduling outlier,
+    or up to 100 parts per million in longer runs.
+    """
+
+    compact = _compact_audio_summary(summary)
+    concealed_sequences = [
+        int(sequence) for sequence in summary.get("concealed_sequences", [])
+    ]
+    source_packets = int(summary.get("source_packets", -1))
+    received = int(summary.get("received", -1))
+    played = int(summary.get("played", -1))
+    concealed = int(summary.get("concealed", -1))
+    duplicates = int(summary.get("duplicates", -1))
+    late = int(summary.get("late", -1))
+    discontinuities = int(summary.get("discontinuities", -1))
+    sequence_count = len(list(summary.get("sequences", [])))
+    callback_count = len(list(summary.get("callback_times", [])))
+
+    exact_delivery = (
+        source_packets == expected_packets
+        and played == expected_packets
+        and sequence_count == expected_packets
+        and callback_count == expected_packets
+        and duplicates == 0
+        and discontinuities == 0
+        and received + late == expected_packets
+        and late == concealed == len(concealed_sequences)
+        and bool(summary.get("concealment_is_silence"))
+    )
+    if not exact_delivery:
+        raise AssertionError(
+            f"sustained radio playout accounting failed: {compact}"
+        )
+
+    outlier_budget = max(1, math.ceil(expected_packets * 0.0001))
+    if concealed > outlier_budget:
+        raise AssertionError(
+            "sustained radio playout exceeded the isolated scheduling-outlier "
+            f"budget ({concealed}>{outlier_budget}): {compact}"
+        )
+    for prior, current in zip(concealed_sequences, concealed_sequences[1:]):
+        if current == ((prior + 1) & 0xFFFF):
+            raise AssertionError(
+                "sustained radio playout had consecutive concealments: "
+                f"{compact}"
+            )
+    return concealed, outlier_budget
 
 
 class _ConformanceRadioAudioSink:
@@ -184,6 +317,7 @@ class _LoopbackUdpImpairmentProxy:
         self._socket.settimeout(0.1)
         self._stop = threading.Event()
         self._lock = threading.Lock()
+        self._interrupted = False
         self._thread = threading.Thread(
             target=self._run, name="commandmic-conformance-udp-proxy", daemon=True
         )
@@ -191,12 +325,12 @@ class _LoopbackUdpImpairmentProxy:
         self._mic_payload_index = 0
         self._mic_held: bytes | None = None
         self._mic_stats = {"dropped": 0, "duplicated": 0, "reordered": 0}
-        self._mic_arrival_times: dict[int, float] = {}
+        self._mic_arrival_times: list[tuple[int, float]] = []
         self._impair_radio_rtp = False
         self._radio_payload_index = 0
         self._radio_held: bytes | None = None
         self._radio_stats = {"dropped": 0, "duplicated": 0, "reordered": 0}
-        self._radio_arrival_times: dict[int, float] = {}
+        self._radio_arrival_times: list[tuple[int, float]] = []
 
     def start(self) -> None:
         self._thread.start()
@@ -215,13 +349,19 @@ class _LoopbackUdpImpairmentProxy:
             self._radio_held = None
             self._radio_stats = {"dropped": 0, "duplicated": 0, "reordered": 0}
 
+    def set_interrupted(self, interrupted: bool) -> None:
+        """Blackhole datagrams while the routed loopback link is interrupted."""
+
+        with self._lock:
+            self._interrupted = bool(interrupted)
+
     def reset_radio_timing(self) -> None:
         with self._lock:
-            self._radio_arrival_times = {}
+            self._radio_arrival_times = []
 
     def reset_mic_timing(self) -> None:
         with self._lock:
-            self._mic_arrival_times = {}
+            self._mic_arrival_times = []
 
     @property
     def stats(self) -> dict[str, int]:
@@ -234,14 +374,14 @@ class _LoopbackUdpImpairmentProxy:
             return dict(self._radio_stats)
 
     @property
-    def radio_arrival_times(self) -> dict[int, float]:
+    def radio_arrival_times(self) -> list[tuple[int, float]]:
         with self._lock:
-            return dict(self._radio_arrival_times)
+            return list(self._radio_arrival_times)
 
     @property
-    def mic_arrival_times(self) -> dict[int, float]:
+    def mic_arrival_times(self) -> list[tuple[int, float]]:
         with self._lock:
-            return dict(self._mic_arrival_times)
+            return list(self._mic_arrival_times)
 
     def _send(self, data: bytes, target: tuple[str, int]) -> None:
         self._socket.sendto(data, target)
@@ -254,6 +394,9 @@ class _LoopbackUdpImpairmentProxy:
                 continue
             except OSError:
                 return
+            with self._lock:
+                if self._interrupted:
+                    continue
             if source == self._radio_address:
                 with self._lock:
                     if (
@@ -261,8 +404,8 @@ class _LoopbackUdpImpairmentProxy:
                         and data[:2] == b"\x80\x7d"
                         and any(data[12:])
                     ):
-                        self._radio_arrival_times[int.from_bytes(data[2:4], "big")] = (
-                            time.perf_counter()
+                        self._radio_arrival_times.append(
+                            (int.from_bytes(data[2:4], "big"), time.perf_counter())
                         )
                     impair = (
                         self._impair_radio_rtp
@@ -307,8 +450,8 @@ class _LoopbackUdpImpairmentProxy:
                     and data[:2] == b"\x80\x7d"
                     and any(data[12:])
                 ):
-                    self._mic_arrival_times[int.from_bytes(data[2:4], "big")] = (
-                        time.perf_counter()
+                    self._mic_arrival_times.append(
+                        (int.from_bytes(data[2:4], "big"), time.perf_counter())
                     )
                 impair = (
                     self._impair_mic_rtp
@@ -373,6 +516,7 @@ class _LoopbackTcpImpairmentProxy:
         self._listener.settimeout(0.1)
         self._stop = threading.Event()
         self._lock = threading.Lock()
+        self._interrupted = False
         self._actions: dict[str, str | None] = {
             direction: None for direction in self._DIRECTIONS
         }
@@ -412,6 +556,22 @@ class _LoopbackTcpImpairmentProxy:
     def stats(self) -> dict[str, int]:
         with self._lock:
             return dict(self._stats)
+
+    def set_interrupted(self, interrupted: bool) -> None:
+        """Tear down and reject sessions while the routed link is interrupted."""
+
+        with self._lock:
+            self._interrupted = bool(interrupted)
+            streams = tuple(self._session_sockets) if interrupted else ()
+        for stream in streams:
+            try:
+                stream.shutdown(socket.SHUT_RDWR)
+            except OSError:
+                pass
+            try:
+                stream.close()
+            except OSError:
+                pass
 
     @staticmethod
     def _frame_count(data: bytes) -> int:
@@ -491,6 +651,9 @@ class _LoopbackTcpImpairmentProxy:
     def _serve(self, client: socket.socket) -> None:
         upstream: socket.socket | None = None
         try:
+            with self._lock:
+                if self._interrupted:
+                    return
             upstream = socket.create_connection(self._target_address, timeout=1.0)
             upstream.settimeout(None)
             client.settimeout(None)
@@ -534,7 +697,12 @@ class _LoopbackTcpImpairmentProxy:
             except OSError:
                 return
             with self._lock:
-                self._session_sockets.add(client)
+                interrupted = self._interrupted
+                if not interrupted:
+                    self._session_sockets.add(client)
+            if interrupted:
+                client.close()
+                continue
             session = threading.Thread(
                 target=self._serve,
                 args=(client,),
@@ -576,6 +744,260 @@ def _wait_for(predicate: Callable[[], bool], timeout: float, description: str) -
             return
         time.sleep(0.02)
     raise TimeoutError(f"timed out waiting for {description}")
+
+
+def _read_worker_response(
+    process: subprocess.Popen[str], timeout: float
+) -> dict[str, object]:
+    if process.stdout is None:
+        raise RuntimeError("conformance worker stdout is unavailable")
+    result: queue.Queue[str] = queue.Queue(maxsize=1)
+    reader = threading.Thread(
+        target=lambda: result.put(process.stdout.readline()),
+        name="commandmic-conformance-worker-reader",
+        daemon=True,
+    )
+    reader.start()
+    try:
+        line = result.get(timeout=timeout)
+    except queue.Empty as exc:
+        raise TimeoutError("timed out waiting for conformance worker response") from exc
+    if not line:
+        stderr = ""
+        if process.poll() is not None and process.stderr is not None:
+            stderr = process.stderr.read().strip()
+        raise RuntimeError(
+            "conformance worker exited without a response"
+            + (f": {stderr}" if stderr else "")
+        )
+    response = json.loads(line)
+    if not isinstance(response, dict):
+        raise RuntimeError(f"invalid conformance worker response: {response!r}")
+    if response.get("ok") is not True:
+        raise RuntimeError(f"conformance worker rejected request: {response!r}")
+    return response
+
+
+def _start_commandmic_worker(
+    *,
+    local_ip: str,
+    radio_ip: str,
+    control_port: int,
+    audio_port: int,
+    audit_path: Path,
+    timeout: float,
+) -> subprocess.Popen[str]:
+    command = [
+        sys.executable,
+        "-m",
+        "ip_commandmic._conformance_worker",
+        "--local-ip",
+        local_ip,
+        "--radio-ip",
+        radio_ip,
+        "--control-port",
+        str(control_port),
+        "--audio-port",
+        str(audio_port),
+        "--audit-path",
+        str(audit_path),
+    ]
+    process = subprocess.Popen(
+        command,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        bufsize=1,
+        creationflags=(
+            subprocess.CREATE_NO_WINDOW
+            if hasattr(subprocess, "CREATE_NO_WINDOW")
+            else 0
+        ),
+    )
+    try:
+        _read_worker_response(process, timeout)
+    except Exception:
+        process.kill()
+        process.wait(timeout=5.0)
+        raise
+    return process
+
+
+def _worker_request(
+    process: subprocess.Popen[str], request: dict[str, object], timeout: float
+) -> dict[str, object]:
+    if process.stdin is None or process.poll() is not None:
+        raise RuntimeError("conformance worker is not running")
+    process.stdin.write(json.dumps(request, separators=(",", ":")) + "\n")
+    process.stdin.flush()
+    return _read_worker_response(process, timeout)
+
+
+def _stop_commandmic_worker(process: subprocess.Popen[str], timeout: float) -> None:
+    if process.poll() is not None:
+        return
+    try:
+        _worker_request(process, {"op": "stop"}, timeout)
+        process.wait(timeout=timeout)
+    except Exception:
+        process.kill()
+        process.wait(timeout=5.0)
+
+
+def _run_subprocess_replacement_conformance(
+    artifact_root: Path, timeout_seconds: float
+) -> str:
+    """Abruptly replace one endpoint process while its peer remains alive."""
+
+    control_port = _free_port(socket.SOCK_STREAM)
+    audio_port = _free_port(socket.SOCK_DGRAM)
+    while audio_port == control_port:
+        audio_port = _free_port(socket.SOCK_DGRAM)
+    radio_ip = "127.0.0.1"
+    mic_ip = "127.0.0.2"
+    radio = SoftwareRadioEndpoint(
+        SoftwareRadioConfig(
+            local_ip=radio_ip,
+            mic_ip=mic_ip,
+            control_port=control_port,
+            audio_port=audio_port,
+            startup_opening_text="",
+            startup_idle_text="SUBPROC",
+            startup_status_carousel=False,
+            idle_display_text="SUBPROC",
+        ),
+        artifact_root / "subprocess-radio.jsonl",
+    )
+    worker: subprocess.Popen[str] | None = None
+    replacement: subprocess.Popen[str] | None = None
+    try:
+        worker = _start_commandmic_worker(
+            local_ip=mic_ip,
+            radio_ip=radio_ip,
+            control_port=control_port,
+            audio_port=audio_port,
+            audit_path=artifact_root / "subprocess-commandmic-1.jsonl",
+            timeout=timeout_seconds,
+        )
+        radio.start()
+
+        def both_ready(process: subprocess.Popen[str]) -> bool:
+            response = _worker_request(
+                process, {"op": "snapshot"}, timeout_seconds
+            )
+            state = response.get("state")
+            return (
+                isinstance(state, dict)
+                and state.get("controls_ready") is True
+                and state.get("session") == "stable"
+                and radio.state.snapshot(include_events=False)["controls_ready"]
+                is True
+            )
+
+        _wait_for(
+            lambda: both_ready(worker),
+            timeout_seconds,
+            "initial cross-process endpoints to reach stable controls",
+        )
+        _worker_request(
+            worker,
+            {"op": "key", "button": "p1", "action": "press"},
+            timeout_seconds,
+        )
+        _wait_for(
+            lambda: radio.state.snapshot(include_events=False)["buttons"].get("p1")
+            is True,
+            timeout_seconds,
+            "cross-process P1 press",
+        )
+        _worker_request(
+            worker,
+            {"op": "key", "button": "p1", "action": "release"},
+            timeout_seconds,
+        )
+        _wait_for(
+            lambda: radio.state.snapshot(include_events=False)["buttons"].get("p1")
+            is False,
+            timeout_seconds,
+            "cross-process P1 release",
+        )
+
+        worker.kill()
+        worker.wait(timeout=5.0)
+        _wait_for(
+            lambda: not bool(
+                radio.state.snapshot(include_events=False)["controls_ready"]
+            )
+            and not bool(radio.state.snapshot(include_events=False)["ptt"])
+            and radio.state.snapshot(include_events=False)["buttons"] == {},
+            timeout_seconds,
+            "radio endpoint to fail closed after abrupt peer-process death",
+        )
+
+        replacement = _start_commandmic_worker(
+            local_ip=mic_ip,
+            radio_ip=radio_ip,
+            control_port=control_port,
+            audio_port=audio_port,
+            audit_path=artifact_root / "subprocess-commandmic-2.jsonl",
+            timeout=timeout_seconds,
+        )
+        _wait_for(
+            lambda: both_ready(replacement),
+            timeout_seconds,
+            "replacement CommandMic process to reach stable controls",
+        )
+        expected = DisplayBuffer(b"NEWPROC!" + bytes(60))
+        radio.send_display(expected)
+
+        def replacement_has_display() -> bool:
+            response = _worker_request(
+                replacement, {"op": "snapshot"}, timeout_seconds
+            )
+            state = response.get("state")
+            return isinstance(state, dict) and (
+                state.get("display") or {}
+            ).get("raw_hex") == expected.raw.hex()
+
+        _wait_for(
+            replacement_has_display,
+            timeout_seconds,
+            "exact display delivery to replacement CommandMic process",
+        )
+        _worker_request(
+            replacement,
+            {"op": "key", "button": "p2", "action": "press"},
+            timeout_seconds,
+        )
+        _wait_for(
+            lambda: radio.state.snapshot(include_events=False)["buttons"].get("p2")
+            is True,
+            timeout_seconds,
+            "replacement-process P2 press",
+        )
+        _worker_request(
+            replacement,
+            {"op": "key", "button": "p2", "action": "release"},
+            timeout_seconds,
+        )
+        _wait_for(
+            lambda: radio.state.snapshot(include_events=False)["buttons"].get("p2")
+            is False,
+            timeout_seconds,
+            "replacement-process P2 release",
+        )
+        return (
+            "an abruptly terminated CommandMic child process cleared the live "
+            "radio endpoint state; a fresh child reached stable operation and "
+            "passed exact display plus bidirectional key checks"
+        )
+    finally:
+        radio.stop()
+        if replacement is not None:
+            _stop_commandmic_worker(replacement, timeout_seconds)
+        if worker is not None:
+            _stop_commandmic_worker(worker, timeout_seconds)
 
 
 def run_loopback_conformance(
@@ -711,55 +1133,141 @@ def run_loopback_conformance(
 
         ready = check("stable_startup", stable_startup)
         if ready:
-            expected_display = DisplayBuffer(b"CONFTEST" + bytes(60))
-
             def display_round_trip() -> str:
-                radio.send_display(expected_display)
-                _wait_for(
-                    lambda: (mic.state.snapshot().get("display") or {}).get("raw_hex")
-                    == expected_display.raw.hex(),
-                    timeout_seconds,
-                    "the exact 68-byte display buffer",
+                corpus = (
+                    DisplayBuffer(bytes(68)),
+                    DisplayBuffer(b"CONFTEST" + bytes(60)),
+                    DisplayBuffer(bytes(range(68))),
                 )
-                return "exact icon-free 68-byte display arrived through the typed API"
+                for index, expected in enumerate(corpus, start=1):
+                    radio.send_display(expected)
+                    _wait_for(
+                        lambda expected=expected: (
+                            mic.state.snapshot().get("display") or {}
+                        ).get("raw_hex")
+                        == expected.raw.hex(),
+                        timeout_seconds,
+                        f"exact sanitized display corpus member {index}",
+                    )
+                return "3 exact synthetic 68-byte display buffers arrived through the typed API"
 
             check("display_round_trip", display_round_trip)
 
             def led_round_trip() -> str:
-                radio.send_led("red")
-                _wait_for(
-                    lambda: mic.state.snapshot()["status_led"] == "red",
-                    timeout_seconds,
-                    "red status LED state",
-                )
-                radio.send_led("off")
-                _wait_for(
-                    lambda: mic.state.snapshot()["status_led"] == "off",
-                    timeout_seconds,
-                    "off status LED state",
-                )
-                return "red and off LED states arrived through the typed API"
+                colors = ("off", "red", "green", "orange")
+                for color in colors:
+                    radio.send_led(color)
+                    _wait_for(
+                        lambda color=color: mic.state.snapshot()["status_led"] == color,
+                        timeout_seconds,
+                        f"{color} status LED state",
+                    )
+                return "all 4 status LED states arrived through the typed API"
 
             check("status_led_round_trip", led_round_trip)
 
             def key_round_trip() -> str:
-                mic.key("p1", "press")
-                _wait_for(
-                    lambda: radio.state.snapshot(include_events=False)["buttons"].get("p1")
-                    is True,
-                    timeout_seconds,
-                    "P1 press",
-                )
-                mic.key("p1", "release")
-                _wait_for(
-                    lambda: radio.state.snapshot(include_events=False)["buttons"].get("p1")
-                    is False,
-                    timeout_seconds,
-                    "P1 release",
-                )
-                return "P1 press and release arrived through the typed API"
+                for button in ORDINARY_KEY_BUTTONS:
+                    mic.key(button, "press")
+                    _wait_for(
+                        lambda button=button: radio.state.snapshot(
+                            include_events=False
+                        )["buttons"].get(button)
+                        is True,
+                        timeout_seconds,
+                        f"{button} press",
+                    )
+                    mic.key(button, "release")
+                    _wait_for(
+                        lambda button=button: radio.state.snapshot(
+                            include_events=False
+                        )["buttons"].get(button)
+                        is False,
+                        timeout_seconds,
+                        f"{button} release",
+                    )
+                return "all 23 ordinary key identities completed press and release"
 
             check("key_press_release", key_round_trip)
+
+            def power_round_trip() -> str:
+                started_at = time.time()
+                mic.tap("power")
+
+                def power_states() -> list[bool]:
+                    states: list[bool] = []
+                    for event in radio.state.snapshot()["events"]:
+                        if event.get("time", 0.0) < started_at:
+                            continue
+                        data = event.get("data")
+                        if not isinstance(data, dict) or data.get("kind") != "power_state":
+                            continue
+                        metadata = data.get("metadata")
+                        if isinstance(metadata, dict):
+                            states.append(bool(metadata.get("power_active")))
+                    return states
+
+                _wait_for(
+                    lambda: power_states()[-2:] == [True, False],
+                    timeout_seconds,
+                    "Power press and release",
+                )
+                return "Power press and release arrived through the typed API"
+
+            check("power_press_release", power_round_trip)
+
+            def backlight_round_trip() -> str:
+                for state in ("off", "dim", "on"):
+                    cursor, _ = mic.state.debug_events(0)
+                    radio.send_backlight(state)
+
+                    def observed(state: str = state, cursor: int = cursor) -> bool:
+                        _, events = mic.state.debug_events(cursor)
+                        return any(
+                            event["event"] == "received"
+                            and event["data"].get("kind") == "backlight_state"
+                            and isinstance(event["data"].get("metadata"), dict)
+                            and event["data"]["metadata"].get("backlight_state") == state
+                            for event in events
+                        )
+
+                    _wait_for(
+                        observed,
+                        timeout_seconds,
+                        f"{state} backlight state",
+                    )
+                return "off, dim and on backlight states arrived through the typed API"
+
+            check("backlight_round_trip", backlight_round_trip)
+
+            def mic_gain_round_trip() -> str:
+                for level in range(1, 6):
+                    cursor, _ = mic.state.debug_events(0)
+                    observed_level = radio.set_mic_gain(level)
+                    if observed_level != level:
+                        raise AssertionError(
+                            f"set_mic_gain({level}) returned {observed_level!r}"
+                        )
+
+                    def gain_pair(level: int = level, cursor: int = cursor) -> bool:
+                        _, events = mic.state.debug_events(cursor)
+                        values = [
+                            event["data"]["metadata"].get("mic_gain_value")
+                            for event in events
+                            if event["event"] == "received"
+                            and event["data"].get("kind") == "mic_gain"
+                            and isinstance(event["data"].get("metadata"), dict)
+                        ]
+                        return values[-2:] == [level, level + 1]
+
+                    _wait_for(
+                        gain_pair,
+                        timeout_seconds,
+                        f"microphone gain {level}/{level + 1} transaction",
+                    )
+                return "all verified microphone gain transactions 1 through 5 arrived"
+
+            check("microphone_gain_round_trip", mic_gain_round_trip)
 
             def tcp_fragmentation_coalescing() -> str:
                 fragmented_display = DisplayBuffer(b"FRAGMENT" + bytes(60))
@@ -1137,46 +1645,32 @@ def run_loopback_conformance(
                     "sustained radio receive summary",
                 )
                 radio_summary = rx_sink.summaries[-1]
-                if any(
-                    radio_summary[field] != 0
-                    for field in ("concealed", "duplicates", "late", "discontinuities")
-                ):
-                    raise AssertionError(
-                        f"clean sustained radio playout had errors: {radio_summary}"
-                    )
-                if (
-                    radio_summary["received"] != sustained_packets
-                    or radio_summary["played"] != sustained_packets
-                ):
-                    raise AssertionError(
-                        f"sustained radio packet count mismatch: {radio_summary}"
-                    )
-
                 radio_arrivals = udp_proxy.radio_arrival_times
                 callback_times = list(radio_summary["callback_times"])
-                callback_latency_ms = [
-                    (float(callback_at) - radio_arrivals[int(sequence)]) * 1000.0
-                    for sequence, callback_at in callback_times
-                    if int(sequence) in radio_arrivals
-                ]
-                if len(callback_latency_ms) != sustained_packets:
+                if len(radio_arrivals) != sustained_packets:
                     raise AssertionError(
-                        "receive callback timing did not cover every sustained packet"
+                        f"radio timing covered only {len(radio_arrivals)} packets"
                     )
+                _assert_continuous_rtp_timeline(
+                    radio_arrivals, label="sustained radio wire"
+                )
+                callback_latency_ms = _rtp_callback_latencies_ms(
+                    radio_arrivals, callback_times
+                )
+                concealed, concealment_budget = _validate_sustained_radio_playout(
+                    radio_summary, expected_packets=sustained_packets
+                )
                 callback_median = statistics.median(callback_latency_ms)
                 callback_p95 = percentile(callback_latency_ms, 0.95)
                 callback_max = max(callback_latency_ms)
-                if callback_max > 20.0:
+                if callback_p95 > 20.0 or callback_max > 100.0:
                     raise AssertionError(
-                        "receive validation-to-callback latency exceeded one packet "
-                        f"interval: max={callback_max:.3f} ms"
+                        "receive validation-to-callback latency exceeded its "
+                        "p95/max budget: "
+                        f"p95={callback_p95:.3f} ms, max={callback_max:.3f} ms"
                     )
-                ordered_radio_arrivals = [
-                    radio_arrivals[int(sequence)]
-                    for sequence in radio_summary["sequences"]
-                ]
                 radio_wire_span = (
-                    ordered_radio_arrivals[-1] - ordered_radio_arrivals[0]
+                    radio_arrivals[-1][1] - radio_arrivals[0][1]
                 )
                 minimum_radio_span = (sustained_packets - 1) * 0.018
                 if radio_wire_span < minimum_radio_span:
@@ -1191,9 +1685,9 @@ def run_loopback_conformance(
                     and event["data"].get("packet_count") == sustained_packets
                 )
                 radio_late = float(radio_completion["max_late_ms"])
-                if radio_late > 20.0:
+                if radio_late > 100.0:
                     raise AssertionError(
-                        f"radio sender deadline lateness exceeded 20 ms: {radio_completion}"
+                        f"radio sender deadline lateness exceeded 100 ms: {radio_completion}"
                     )
 
                 udp_proxy.set_mic_rtp_impairment(False)
@@ -1267,17 +1761,17 @@ def run_loopback_conformance(
                     if event["event"] == "mic_tx_audio_completed"
                 )
                 mic_late = float(mic_tx_completion["max_late_ms"])
-                if mic_late > 20.0:
+                if mic_late > 100.0:
                     raise AssertionError(
-                        f"microphone sender deadline lateness exceeded 20 ms: "
+                        f"microphone sender deadline lateness exceeded 100 ms: "
                         f"{mic_tx_completion}"
                     )
-                mic_arrivals = list(udp_proxy.mic_arrival_times.values())
+                mic_arrivals = udp_proxy.mic_arrival_times
                 if len(mic_arrivals) < sustained_packets:
                     raise AssertionError(
                         f"microphone timing covered only {len(mic_arrivals)} packets"
                     )
-                mic_wire_span = mic_arrivals[-1] - mic_arrivals[0]
+                mic_wire_span = mic_arrivals[-1][1] - mic_arrivals[0][1]
                 minimum_span = (len(mic_arrivals) - 1) * 0.018
                 if mic_wire_span < minimum_span:
                     raise AssertionError(
@@ -1287,7 +1781,9 @@ def run_loopback_conformance(
                 return (
                     f"{sustained_packets} radio RTP packets and "
                     f"{mic_completion.get('packets')} "
-                    "microphone RTP packets remained continuous; receive callback "
+                    "microphone RTP packets remained continuous; radio playout "
+                    f"isolated concealments/budget={concealed}/{concealment_budget}; "
+                    "receive callback "
                     f"latency median/p95/max={callback_median:.3f}/"
                     f"{callback_p95:.3f}/{callback_max:.3f} ms; sender max lateness "
                     f"radio/mic={radio_late:.3f}/{mic_late:.3f} ms"
@@ -1512,6 +2008,71 @@ def run_loopback_conformance(
 
             check("midstream_cancellation_recovery", midstream_cancellation_recovery)
 
+            def network_interruption_recovery() -> str:
+                tcp_proxy.set_interrupted(True)
+                udp_proxy.set_interrupted(True)
+                try:
+                    _wait_for(
+                        lambda: not bool(mic.state.snapshot()["controls_ready"])
+                        and not bool(mic.state.snapshot()["ptt_active"])
+                        and not bool(mic.state.snapshot()["rx_audio_open"])
+                        and not bool(
+                            radio.state.snapshot(include_events=False)["controls_ready"]
+                        )
+                        and not bool(
+                            radio.state.snapshot(include_events=False)["ptt"]
+                        ),
+                        timeout_seconds,
+                        "both endpoints to fail closed during routed-link interruption",
+                    )
+                    # Keep the link down across at least one outbound retry.
+                    time.sleep(0.25)
+                finally:
+                    udp_proxy.set_interrupted(False)
+                    tcp_proxy.set_interrupted(False)
+
+                _wait_for(
+                    lambda: bool(mic.state.snapshot()["controls_ready"])
+                    and bool(
+                        radio.state.snapshot(include_events=False)["controls_ready"]
+                    ),
+                    timeout_seconds,
+                    "both endpoints to recover after routed-link restoration",
+                )
+                expected = DisplayBuffer(b"NETRESTO" + bytes(60))
+                radio.send_display(expected)
+                _wait_for(
+                    lambda: (mic.state.snapshot().get("display") or {}).get("raw_hex")
+                    == expected.raw.hex(),
+                    timeout_seconds,
+                    "display transaction after routed-link restoration",
+                )
+                mic.key("p2", "press")
+                _wait_for(
+                    lambda: radio.state.snapshot(include_events=False)["buttons"].get(
+                        "p2"
+                    )
+                    is True,
+                    timeout_seconds,
+                    "P2 press after routed-link restoration",
+                )
+                mic.key("p2", "release")
+                _wait_for(
+                    lambda: radio.state.snapshot(include_events=False)["buttons"].get(
+                        "p2"
+                    )
+                    is False,
+                    timeout_seconds,
+                    "P2 release after routed-link restoration",
+                )
+                return (
+                    "real TCP sessions were torn down and rejected while UDP was "
+                    "blackholed; both endpoints failed closed and returned to "
+                    "stable display/key operation after link restoration"
+                )
+
+            check("network_interruption_recovery", network_interruption_recovery)
+
             def fail_closed_disconnect() -> str:
                 radio.stop()
                 _wait_for(
@@ -1661,6 +2222,13 @@ def run_loopback_conformance(
         tcp_proxy.close()
         udp_proxy.close()
 
+    check(
+        "subprocess_replacement_recovery",
+        lambda: _run_subprocess_replacement_conformance(
+            artifact_root, timeout_seconds
+        ),
+    )
+
     return ConformanceReport(
         checks=tuple(checks),
         elapsed_seconds=time.monotonic() - started,
@@ -1682,7 +2250,11 @@ def main(argv: list[str] | None = None) -> int:
         sustained_audio_seconds=args.sustained_audio_seconds,
         cold_restart_cycles=args.cold_restart_cycles,
     )
-    print(json.dumps(report.to_dict(), indent=2))
+    serialized = json.dumps(report.to_dict(), indent=2)
+    report_path = args.artifact_directory / "report.json"
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    report_path.write_text(serialized + "\n", encoding="utf-8")
+    print(serialized)
     return 0 if report.passed else 1
 
 

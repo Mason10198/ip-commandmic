@@ -20,6 +20,12 @@ def test_software_radio_defaults_to_neutral_passive_control_observation() -> Non
     assert config.startup_status_carousel is False
     assert config.automatic_key_responses is False
     assert config.automatic_ptt_responses is False
+    assert config.speaker_volume == 22
+
+
+def test_software_radio_default_snapshot_uses_volume_22(tmp_path) -> None:
+    runtime = SoftwareRadioEndpoint(SoftwareRadioConfig(), tmp_path / "audit.jsonl")
+    assert runtime.state.snapshot()["speaker_volume"] == 22
 
 
 def test_realtime_backlight_uses_typed_emulator_operation(tmp_path) -> None:
@@ -117,6 +123,27 @@ def test_speaker_volume_uses_verified_range_with_mute_and_unity() -> None:
         abs_tol=0.001,
     )
     assert SoftwareRadioEndpoint._scale_payloads([payload], 0) == []
+
+
+def test_long_paced_tone_extends_public_action_timeout(tmp_path) -> None:
+    runtime = SoftwareRadioEndpoint(
+        SoftwareRadioConfig(speaker_volume=32), tmp_path / "audit.jsonl"
+    )
+
+    class Emulator:
+        async def send_interactive_audio_tone(self, **kwargs) -> int:
+            return round(float(kwargs["duration_seconds"]) / 0.020)
+
+    observed: list[float] = []
+
+    def run_action(coroutine, timeout=35.0):
+        observed.append(timeout)
+        return asyncio.run(coroutine)
+
+    runtime._emulator = Emulator()  # type: ignore[assignment]
+    runtime._run_action = run_action  # type: ignore[method-assign]
+    assert runtime.send_tone(1000.0, -18.0, 1800.0) == 90000
+    assert observed == [1810.0]
 
 
 def test_parrot_replays_current_ptt_audio_after_release_tail(tmp_path) -> None:

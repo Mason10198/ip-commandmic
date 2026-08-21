@@ -1,6 +1,6 @@
 {
   "fixture_version": 1,
-  "description": "Sanitized representative frames from simultaneous cold boot",
+  "description": "Sanitized representative frames derived from simultaneous cold boot; identity MAC is synthetic",
   "messages": [
     {
       "direction": "radio_to_mic",
@@ -9,7 +9,7 @@
     },
     {
       "direction": "mic_to_radio",
-      "raw_hex": "f341710502001a010101ff0fff0fff0fff0f60cc49636f6d20496e63010090c71243595a680c50fd",
+      "raw_hex": "f341710502001a010101ff0fff0fff0fff0f60cc49636f6d20496e63010200000000015a683f7dfd",
       "format": "ordinary_stuffed"
     },
     {

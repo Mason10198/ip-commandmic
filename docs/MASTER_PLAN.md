@@ -129,12 +129,26 @@ with alternating mic-first/radio-first ordering and fresh display, key and audio
 transactions on every cycle. Sustained traffic also proved that the bounded UI
 event ring cannot serve as durable completion state, so `EndpointState` now
 retains an independent capture counter and last capture summary. True process
-replacement, network interruption and the 30-minute soak remain open. The built
+replacement and routed TCP/UDP interruption now pass; the 30-minute soak remains
+open. The built
 a20 wheel also passed all 14 baseline checks from a clean Python 3.14
 environment.
 
 The workspace-level `START_HERE.md` records exact release locations, the
 next-session procedure and repository/publication status.
+
+The scoped stable-library release contract is maintained in `V1_SCOPE.md`.
+It deliberately separates the version 1 interoperable SDK gate from later
+exhaustive P4/P5 semantic closure; deferred rows remain visible in the feature
+matrix.
+
+The 2026-08-21 release-candidate hardware-free gate passed all 19 public-wrapper
+checks in 3,676.282 seconds. Its two 30-minute sustained directions carried
+90,000 continuous radio RTP packets and 90,012 continuous microphone RTP
+packets, followed by ten fresh-object restart cycles, routed-link interruption
+and abrupt child-process replacement. Hardware-free v1 conformance is complete;
+the physical endpoint matrices, physical soak/restart cycles and synchronized
+latency remain the current release blockers.
 
 ## Delivery priorities
 
@@ -588,10 +602,9 @@ final reproducibility and limitations audit.
 
 ## Immediate next actions
 
-1. Extend the now-bidirectional software-radio ↔ software-mic public-wrapper
-   baseline through true subprocess/network interruption and the 30-minute
-   soak; configurable 10-second media stress and ten fresh-object cycles now
-   pass. Then repeat the Lab matrix against the physical CommandMic.
+1. Repeat the complete Lab matrix against the physical CommandMic, including
+   controls, display, volume, recording, Parrot, live gain changes, playback,
+   ten PoE cycles and a 30-minute idle/active soak.
 2. Complete synchronized latency plus device/network failure evidence for the
    Desktop GUI and `SoftwareCommandMicEndpoint`.
 3. Finish auxiliary display-byte and uncommon screen-corpus mapping, feeding
