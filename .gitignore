@@ -1,0 +1,17 @@
+/.venv/
+/.pytest_cache/
+/.uv-cache/
+/build/
+/build.pre-rename/
+/dist/
+*.egg-info/
+__pycache__/
+*.py[cod]
+*.pcap
+*.pcapng
+*.wav
+*.icf
+*.jsonl
+/artifacts/
+/captures/
+/codeplugs/

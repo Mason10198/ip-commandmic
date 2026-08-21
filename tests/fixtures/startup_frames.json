@@ -1,0 +1,26 @@
+{
+  "fixture_version": 1,
+  "description": "Sanitized representative frames from simultaneous cold boot",
+  "messages": [
+    {
+      "direction": "radio_to_mic",
+      "raw_hex": "f341710505000101794cfd",
+      "format": "ordinary"
+    },
+    {
+      "direction": "mic_to_radio",
+      "raw_hex": "f341710502001a010101ff0fff0fff0fff0f60cc49636f6d20496e63010090c71243595a680c50fd",
+      "format": "ordinary_stuffed"
+    },
+    {
+      "direction": "radio_to_mic",
+      "raw_hex": "f541710503000101ff014cfd",
+      "format": "ordinary_stuffed_checksum"
+    },
+    {
+      "direction": "mic_to_radio",
+      "raw_hex": "f54171ee0503011897fd",
+      "format": "special_or_unknown"
+    }
+  ]
+}

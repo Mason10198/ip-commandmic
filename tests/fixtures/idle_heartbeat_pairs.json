@@ -1,0 +1,14 @@
+{
+  "fixture_version": 1,
+  "description": "Sanitized application payload fixture derived from passive idle observation",
+  "messages": [
+    {
+      "direction": "radio_to_mic",
+      "raw_hex": "f34171050000024d003570fd"
+    },
+    {
+      "direction": "mic_to_radio",
+      "raw_hex": "f34171050000026d0135a8fd"
+    }
+  ]
+}

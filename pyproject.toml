@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ip-commandmic"
+version = "0.2.0a21"
+description = "Evidence-backed Python library for the Icom F5330D/F6330D IP CommandMic protocol"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{name = "Mason Nelson", email = "n5lsn@users.noreply.github.com"}]
+license = "MIT"
+license-files = ["LICENSE", "NOTICE.md"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Communications :: Ham Radio",
+]
+dependencies = []
+
+[project.optional-dependencies]
+audio = ["miniaudio>=1.71,<2"]
+dev = ["pytest>=8"]
+
+[project.urls]
+Documentation = "https://github.com/mason10198/ip-commandmic/tree/main/docs"
+Repository = "https://github.com/mason10198/ip-commandmic"
+Issues = "https://github.com/mason10198/ip-commandmic/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
