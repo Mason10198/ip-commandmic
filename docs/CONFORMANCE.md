@@ -24,6 +24,11 @@ The hardware-free endpoint uses an ephemeral outbound TCP source port so fresh
 object cycles do not depend on host-specific `TIME_WAIT` reuse. The normal
 library default remains the observed fixed radio-side source port.
 
+CI runs the portable test suite across Linux, macOS, Windows, and Python
+3.11–3.14. The complete timing-sensitive 19-check loopback scenario runs on
+the Windows reference host; shared Unix runners can introduce scheduler gaps
+that invalidate its strict real-time RTP and fresh-object timing assertions.
+
 Longer hardware-free runs use the same checks and bounded parameters:
 
 ```powershell

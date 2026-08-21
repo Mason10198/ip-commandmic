@@ -8,6 +8,7 @@ from ip_commandmic import run_loopback_conformance
 from ip_commandmic import conformance
 
 
+@pytest.mark.reference_conformance
 def test_public_endpoint_loopback_conformance(tmp_path):
     report = run_loopback_conformance(tmp_path / "conformance")
 
