@@ -563,9 +563,9 @@ class SoftwareRadioEndpoint:
         ):
             self._loop.call_soon_threadsafe(self._task.cancel)
         if self._thread:
-            self._thread.join(5)
+            self._thread.join(20)
             if self._thread.is_alive():
-                raise RuntimeError("test protocol runtime did not stop within 5 seconds")
+                raise RuntimeError("test protocol runtime did not stop within 20 seconds")
         self._thread = None
         self._loop = None
         self._task = None

@@ -2112,6 +2112,9 @@ def run_loopback_conformance(
                         for cycle in range(1, cold_restart_cycles + 1):
                             radio.stop()
                             mic.stop()
+                            # Let the routed proxy observe both FIN paths before
+                            # fresh listeners and sessions reuse the topology.
+                            time.sleep(0.25)
                             tx_source, rx_sink, mic, radio = make_endpoints()
 
                             if cycle % 2:
