@@ -136,7 +136,7 @@ RADIO_AUDIO_STATUS_CLOSED = build_frame(0x02, 0x02, b"\x00")
 # its final RTP packet. Preserve that bounded sender tail and let the receiver
 # drain already-queued UDP before finalizing a cross-transport close.
 RADIO_AUDIO_CLOSE_DELAY_SECONDS = 0.010
-RADIO_AUDIO_RECEIVE_DRAIN_SECONDS = 0.020
+RADIO_AUDIO_RECEIVE_DRAIN_SECONDS = 0.150
 RADIO_TX_ACTIVE = encode_audio_path("transmit_active")
 RADIO_TX_STATUS_ACTIVE = build_frame(0x02, 0x02, b"\x02")
 MIC_RTP_SSRC = 0x7069C2CC
@@ -183,6 +183,7 @@ class EmulatorConfig:
     verified_startup: bool = False
     voice_port: int = 50000
     probe_source_port: int = 52002
+    source_port: int | None = None
     enable_rx_audio: bool = False
     rx_tone_hz: float = 1000.0
     rx_level_dbfs: float = -30.0
@@ -2750,11 +2751,16 @@ class CommandMicEmulator:
 
         while True:
             try:
-                local_port = self.config.port
+                local_port = (
+                    self.config.port
+                    if self.config.source_port is None
+                    else self.config.source_port
+                )
                 if (
                     self.config.role == "radio"
                     and self.config.verified_startup
                     and self._radio_session_count == 0
+                    and self.config.source_port is None
                 ):
                     # Windows retains an actively closed connection tuple long enough
                     # to block the observed two-second reconnect. Reserve the verified

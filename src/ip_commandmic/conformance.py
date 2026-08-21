@@ -1073,6 +1073,7 @@ def run_loopback_conformance(
                 mic_ip=mic_ip,
                 control_port=control_port,
                 control_peer_ip=proxy_ip,
+                control_source_port=0,
                 audio_port=audio_port,
                 audio_peer_ip=proxy_ip,
                 startup_opening_text="",

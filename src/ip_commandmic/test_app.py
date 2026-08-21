@@ -38,6 +38,7 @@ class SoftwareRadioConfig:
     mic_ip: str = "192.168.0.2"
     control_port: int = 52001
     control_peer_ip: str | None = None
+    control_source_port: int | None = None
     audio_port: int = 50000
     audio_peer_ip: str | None = None
     mic_gain: int = 3
@@ -369,6 +370,7 @@ class SoftwareRadioEndpoint:
                 local_ip=self.config.local_ip,
                 peer_ip=self.config.control_peer_ip or self.config.mic_ip,
                 port=self.config.control_port,
+                source_port=self.config.control_source_port,
                 verified_startup=True,
                 voice_port=self.config.audio_port,
                 mic_gain=self.config.mic_gain,

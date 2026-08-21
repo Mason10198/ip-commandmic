@@ -20,6 +20,10 @@ sudo ifconfig lo0 alias 127.0.0.2 255.0.0.0
 sudo ifconfig lo0 alias 127.0.0.3 255.0.0.0
 ```
 
+The hardware-free endpoint uses an ephemeral outbound TCP source port so fresh
+object cycles do not depend on host-specific `TIME_WAIT` reuse. The normal
+library default remains the observed fixed radio-side source port.
+
 Longer hardware-free runs use the same checks and bounded parameters:
 
 ```powershell
