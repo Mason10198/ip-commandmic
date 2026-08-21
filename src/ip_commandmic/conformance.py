@@ -2120,9 +2120,6 @@ def run_loopback_conformance(
                             else:
                                 orders.append("radio-first")
                                 radio.start()
-                                # Ensure at least one real outbound attempt can
-                                # occur before the fresh listener exists.
-                                time.sleep(0.10)
                                 mic.start()
 
                             _wait_for(

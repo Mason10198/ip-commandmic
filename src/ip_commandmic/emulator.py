@@ -133,9 +133,10 @@ RADIO_AUDIO_CLOSE = encode_audio_path("closed")
 RADIO_AUDIO_STATUS_OPEN = build_frame(0x02, 0x02, b"\x04")
 RADIO_AUDIO_STATUS_CLOSED = build_frame(0x02, 0x02, b"\x00")
 # E-031 observed the real radio closing the control gate roughly 8 ms after
-# its final RTP packet. Preserve a bounded implementation drain so UDP delivery
-# and callbacks cannot be overtaken by TCP close on a loaded software host.
-RADIO_AUDIO_CLOSE_DELAY_SECONDS = 0.250
+# its final RTP packet. Preserve that bounded sender tail and let the receiver
+# drain already-queued UDP before finalizing a cross-transport close.
+RADIO_AUDIO_CLOSE_DELAY_SECONDS = 0.010
+RADIO_AUDIO_RECEIVE_DRAIN_SECONDS = 0.020
 RADIO_TX_ACTIVE = encode_audio_path("transmit_active")
 RADIO_TX_STATUS_ACTIVE = build_frame(0x02, 0x02, b"\x02")
 MIC_RTP_SSRC = 0x7069C2CC
@@ -2323,6 +2324,9 @@ class CommandMicEmulator:
                         self._mic_tx_active.set()
                         self.audit.write("accepted_verified_tx_active")
                     elif audio_state == "closed":
+                        await _sleep_with_1ms_timer(
+                            RADIO_AUDIO_RECEIVE_DRAIN_SECONDS
+                        )
                         self._udp_protocol.set_radio_audio_gate(False)
                         if self._mic_ptt_asserted or self._mic_tx_active.is_set():
                             self._mic_tx_closed.set()
