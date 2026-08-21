@@ -5,6 +5,10 @@ in `docs/PROTOCOL.md`; this file tracks package and compatibility changes.
 
 ## Unreleased
 
+No changes yet.
+
+## 1.0.0rc1 — 2026-08-21
+
 ### Added
 
 - Proposed version 1 support contract and machine-readable stable/advanced

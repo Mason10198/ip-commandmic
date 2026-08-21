@@ -36,6 +36,8 @@ physical acceptance gate.
   passes all 19 checks: 90,000 continuous radio RTP packets, 90,012 continuous
   microphone RTP packets, zero radio playout concealments, ten fresh-object
   restart cycles, routed interruption and abrupt subprocess replacement.
+- [x] Local `1.0.0rc1` version metadata and release notes explicitly preserve
+  the remaining physical limitations.
 
 ## Hardware-free release blockers
 
@@ -59,6 +61,7 @@ None.
 - [ ] Configure the public Git remote and push `main`.
 - [ ] Confirm the first hosted CI and scheduled/manual extended-conformance run,
   then configure branch/release policy.
-- [ ] Publish `1.0.0rc1` with the exact remaining physical limitations.
+- [ ] Publish the locally prepared `1.0.0rc1` artifacts with the exact
+  remaining physical limitations.
 - [ ] Re-run all release gates from the release-candidate artifacts.
 - [ ] Tag and publish `1.0.0` only when every v1 gate is complete.

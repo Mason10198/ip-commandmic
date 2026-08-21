@@ -4,7 +4,7 @@ import ip_commandmic as icom
 
 
 def test_public_api_exports_both_endpoint_roles_and_wire_primitives() -> None:
-    assert icom.__version__ == "0.2.0a21"
+    assert icom.__version__ == "1.0.0rc1"
     assert callable(icom.encode_mic_gain_transaction)
     assert icom.SoftwareCommandMicEndpoint
     assert icom.SoftwareRadioEndpoint

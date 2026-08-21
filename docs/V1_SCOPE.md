@@ -1,8 +1,8 @@
 # Version 1 support contract
 
-Status: proposed contract for `1.0.0`. This document defines what must be stable
-and accepted before the first non-alpha release. The exhaustive research plan
-remains broader than this contract.
+Status: release-candidate contract for `1.0.0`. The hardware-free contract is
+accepted; the physical gates listed below remain mandatory before the final
+release. The exhaustive research plan remains broader than this contract.
 
 ## Supported purpose
 

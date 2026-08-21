@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ip-commandmic"
-version = "0.2.0a21"
+version = "1.0.0rc1"
 description = "Evidence-backed Python library for the Icom F5330D/F6330D IP CommandMic protocol"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -12,7 +12,7 @@ authors = [{name = "Mason Nelson", email = "n5lsn@users.noreply.github.com"}]
 license = "MIT"
 license-files = ["LICENSE", "NOTICE.md"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",

@@ -1,7 +1,7 @@
 # CommandMic exhaustive feature matrix
 
 This is the authoritative coverage ledger for the exhaustive master plan,
-reviewed against package version `0.2.0a21` and the independently packaged UIs.
+reviewed against package version `1.0.0rc1` and the independently packaged UIs.
 It remains a
 structured family-level ledger; later inventory passes expand each family
 into one row per CPS function, setting, message value, operating mode and

@@ -22,7 +22,7 @@ Nothing may be counted complete merely because it was not seen.
 
 ## Current handoff checkpoint (2026-08-20)
 
-The independently packaged components are `ip-commandmic 0.2.0a21`,
+The independently packaged components are `ip-commandmic 1.0.0rc1`,
 `ip-commandmic-desktop 0.1.0-alpha.9`, and `ip-commandmic-lab
 0.1.0-alpha.29`. Automated suites pass (181 library tests plus 5 subtests, 3
 Desktop tests, and 18 Lab tests). The `ip-commandmic-ui` and

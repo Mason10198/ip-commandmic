@@ -3,10 +3,14 @@
 An evidence-backed, language-neutral protocol specification and Python reference
 implementation for the Ethernet CommandMic used with Icom F5330D/F6330D radios.
 
-Status: **public alpha**. Major everyday controls, the LCD, status LED, startup,
-reconnection, PTT and bidirectional low-latency audio are implemented and tested
-against real hardware. Some auxiliary display controls, uncommon state messages
-and error branches remain explicitly unresolved.
+Status: **1.0.0 release candidate**. The stable API contract and hardware-free
+release gates are complete. Major everyday controls, the LCD, status LED,
+startup, reconnection, PTT and bidirectional low-latency audio are implemented
+and tested against real hardware. Final `1.0.0` remains blocked by the physical
+endpoint matrices, physical restart/soak campaigns and synchronized latency
+listed in [the release-readiness ledger](docs/RELEASE_READINESS.md). Some
+auxiliary display controls, uncommon state messages and error branches remain
+explicitly deferred from the scoped v1 contract.
 
 This is an independent interoperability project and is not affiliated with or
 endorsed by Icom Incorporated.
