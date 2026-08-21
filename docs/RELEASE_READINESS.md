@@ -39,6 +39,10 @@ physical acceptance gate.
 - [x] Public `v1.0.0rc1` version metadata and release notes explicitly preserve
   the remaining physical limitations. The GitHub prerelease tag resolves to
   commit `174740c35839940389404008c6fa6fabf6fe34e4`.
+- [x] The physical CommandMic/Lab alpha.32 matrix passes stable connection,
+  live gain 1–5, display/blink/dot restoration, fresh spectrum and absolute
+  meters, WAV recording, Parrot capture/replay, volume 0–32 with startup 22,
+  bounded speaker-file playback/stop, backlight and status-LED-off behavior.
 
 ## Hardware-free release blockers
 
@@ -46,8 +50,6 @@ None.
 
 ## Physical release blockers
 
-- [ ] Complete the physical-CommandMic/Lab matrix, including stable-session
-  microphone gain, display, recording, Parrot, volume and speaker playback.
 - [ ] Complete the real-radio/software-CommandMic matrix for every supported
   key, display/indicator state, receive audio, live transmit audio and PTT;
   explicitly confirm acceptance of the public synthetic locally administered

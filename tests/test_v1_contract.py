@@ -52,6 +52,7 @@ def test_v1_endpoint_method_contract_is_present() -> None:
         "send_tone",
         "send_wav",
         "send_audio_file",
+        "stop_audio_playback",
         "start_recording",
         "stop_recording",
     } <= set(dir(icom.SoftwareRadioEndpoint))

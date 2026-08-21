@@ -20,19 +20,21 @@ possible from black-box observation. Project completion therefore means
 hardware/licensing prerequisites and genuinely opaque fields explicitly listed.
 Nothing may be counted complete merely because it was not seen.
 
-## Current handoff checkpoint (2026-08-20)
+## Current handoff checkpoint (2026-08-21)
 
-The independently packaged components are `ip-commandmic 1.0.0rc1`,
+The independently packaged components are `ip-commandmic 1.0.0rc2`,
 `ip-commandmic-desktop 0.1.0-alpha.9`, and `ip-commandmic-lab
-0.1.0-alpha.29`. The library release candidate is public on GitHub at tag
-`v1.0.0rc1`; TestPyPI and PyPI remain unpublished. Automated suites pass (195
+0.1.0-alpha.32`. The prior library candidate is public at `v1.0.0rc1`; rc2
+publication, TestPyPI and PyPI remain pending. Automated suites pass (195
 library tests plus 5 subtests, 3
-Desktop tests, and 18 Lab tests). The `ip-commandmic-ui` and
+Desktop tests, and 19 Lab tests). The `ip-commandmic-ui` and
 `ip-commandmic-web` repositories are initialized contract scaffolds and are not
 release products yet.
 
-The immediate hardware gate is completion of physical-CommandMic UI/audio-file
-acceptance for Lab alpha.20. Alpha.19 audit evidence showed valid PTT press/release and
+The physical-CommandMic Lab matrix is accepted through alpha.32, including live
+gain changes, display restoration, fresh audio statistics/spectrum, recording,
+Parrot, the full volume range, file playback/stop, backlight and status LED.
+Earlier alpha.19 audit evidence showed valid PTT press/release and
 an open local capture gate but zero RTP packets. This established that the
 physical CommandMic requires the verified radio TX-active/status response
 before it emits microphone RTP. Alpha.20 enables that response only after an
