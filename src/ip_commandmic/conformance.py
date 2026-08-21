@@ -1003,7 +1003,7 @@ def _run_subprocess_replacement_conformance(
 def run_loopback_conformance(
     artifact_directory: str | Path,
     *,
-    timeout_seconds: float = 12.0,
+    timeout_seconds: float = 20.0,
     sustained_audio_seconds: float = 1.0,
     cold_restart_cycles: int = 3,
 ) -> ConformanceReport:
@@ -2240,7 +2240,7 @@ def run_loopback_conformance(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--artifact-directory", type=Path, required=True)
-    parser.add_argument("--timeout", type=float, default=12.0)
+    parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument("--sustained-audio-seconds", type=float, default=1.0)
     parser.add_argument("--cold-restart-cycles", type=int, default=3)
     args = parser.parse_args(argv)

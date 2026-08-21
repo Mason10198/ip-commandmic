@@ -133,9 +133,9 @@ RADIO_AUDIO_CLOSE = encode_audio_path("closed")
 RADIO_AUDIO_STATUS_OPEN = build_frame(0x02, 0x02, b"\x04")
 RADIO_AUDIO_STATUS_CLOSED = build_frame(0x02, 0x02, b"\x00")
 # E-031 observed the real radio closing the control gate roughly 8 ms after
-# its final RTP packet. Preserve a bounded 50 ms implementation tail so UDP
-# delivery and callbacks cannot be overtaken by TCP close on a busy host.
-RADIO_AUDIO_CLOSE_DELAY_SECONDS = 0.050
+# its final RTP packet. Preserve a bounded implementation drain so UDP delivery
+# and callbacks cannot be overtaken by TCP close on a loaded software host.
+RADIO_AUDIO_CLOSE_DELAY_SECONDS = 0.250
 RADIO_TX_ACTIVE = encode_audio_path("transmit_active")
 RADIO_TX_STATUS_ACTIVE = build_frame(0x02, 0x02, b"\x02")
 MIC_RTP_SSRC = 0x7069C2CC

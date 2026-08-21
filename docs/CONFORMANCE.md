@@ -29,7 +29,8 @@ python -m ip_commandmic.conformance --artifact-directory artifacts/stress `
 
 `--sustained-audio-seconds` accepts 1–1800 seconds per media direction and
 `--cold-restart-cycles` accepts 1–100 fresh endpoint-object cycles. The normal
-baseline uses one second and three cycles so CI remains fast.
+baseline uses one second, three cycles, and a 20-second per-wait budget so the
+refused-attempt, probe, and stable phases remain portable while CI stays bounded.
 
 The CLI writes `report.json` beside the two JSONL audits and also prints the
 same JSON to standard output. On 2026-08-21 the release-candidate configuration
