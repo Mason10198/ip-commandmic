@@ -7,6 +7,14 @@ in `docs/PROTOCOL.md`; this file tracks package and compatibility changes.
 
 No changes yet.
 
+## 1.0.0rc2 — 2026-08-21
+
+- Adds cancellable bounded speaker playback through
+  `SoftwareRadioEndpoint.stop_audio_playback()` and rejects overlapping audio
+  playback operations.
+- Records physical confirmation that microphone gain changes take effect during
+  an already-connected session.
+
 ## 1.0.0rc1 — 2026-08-21
 
 ### Added

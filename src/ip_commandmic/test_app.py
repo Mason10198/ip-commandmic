@@ -8,6 +8,7 @@ import struct
 import threading
 import time
 import wave
+from concurrent.futures import CancelledError, Future
 from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
@@ -73,6 +74,7 @@ class EndpointState:
             "recorded_packets": 0,
             "speaker_volume": 22,
             "mic_gain": 3,
+            "audio_playing": False,
             "parrot_enabled": False,
             "parrot_status": "disabled",
             "parrot_packets": 0,
@@ -130,6 +132,7 @@ class SoftwareRadioEndpoint:
         self._record_path: Path | None = None
         self._recorded_packets = 0
         self._media_lock = threading.RLock()
+        self._audio_future: Future[Any] | None = None
         self._speaker_volume = self._validate_speaker_volume(config.speaker_volume)
         self._idle_display_text = self._validate_display_text(config.idle_display_text)
         self._last_display = self._text_only_display(self._idle_display_text)
@@ -576,6 +579,35 @@ class SoftwareRadioEndpoint:
             raise RuntimeError("test protocol runtime is not running")
         return asyncio.run_coroutine_threadsafe(coroutine, self._loop).result(timeout)
 
+    def _run_audio_action(self, coroutine: Any, timeout: float) -> Any:
+        if self._loop is None or self._task is None or self._task.done():
+            raise RuntimeError("test protocol runtime is not running")
+        future = asyncio.run_coroutine_threadsafe(coroutine, self._loop)
+        with self._media_lock:
+            if self._audio_future is not None and not self._audio_future.done():
+                future.cancel()
+                raise RuntimeError("audio playback is already active")
+            self._audio_future = future
+        self.state.update(audio_playing=True)
+        try:
+            return future.result(timeout)
+        except CancelledError:
+            return 0
+        finally:
+            with self._media_lock:
+                if self._audio_future is future:
+                    self._audio_future = None
+            self.state.update(audio_playing=False)
+
+    def stop_audio_playback(self) -> bool:
+        """Cancel the current bounded speaker-audio operation, if one is active."""
+
+        with self._media_lock:
+            future = self._audio_future
+        if future is None or future.done():
+            return False
+        return future.cancel()
+
     @staticmethod
     def _audio_action_timeout(duration_seconds: float) -> float:
         """Allow a paced media operation to finish plus bounded control overhead."""
@@ -666,7 +698,7 @@ class SoftwareRadioEndpoint:
         if not scaled:
             return 0
         return int(
-            self._run_action(
+            self._run_audio_action(
                 emulator.send_interactive_audio_payloads(scaled, source="audio_file"),
                 timeout=self._audio_action_timeout(len(scaled) * 0.020),
             )
