@@ -39,6 +39,12 @@ physical acceptance gate.
 - [x] Public `v1.0.0rc2` version metadata and release notes explicitly preserve
   the remaining physical limitations. The GitHub prerelease tag resolves to
   commit `33fe1c333315217d2a77e821bc968776c5aa8d7f`.
+- [x] The `1.0.0rc3` candidate physically reproduces real-radio soft-off,
+  heartbeat-only standby and wake, including both `f5/05/03` variants; standby
+  blanks the virtual mic and disables every control except Power.
+- [x] Embedded primary-character decimal points and the real `BATT 13.7V`
+  display decode are regression-tested; uppercase `B` and `V` appearances are
+  operator-verified against the physical CommandMic.
 - [x] The physical CommandMic/Lab alpha.32 matrix passes stable connection,
   live gain 1–5, display/blink/dot restoration, fresh spectrum and absolute
   meters, WAV recording, Parrot capture/replay, volume 0–32 with startup 22,
@@ -50,10 +56,10 @@ None.
 
 ## Physical release blockers
 
-- [ ] Complete the real-radio/software-CommandMic matrix for every supported
-  key, display/indicator state, receive audio, live transmit audio and PTT;
-  explicitly confirm acceptance of the public synthetic locally administered
-  identity rather than the private laboratory device address.
+- [x] Complete the bounded real-radio/software-CommandMic functional matrix for
+  all 23 ordinary keys, display/indicators, receive audio, live transmit audio,
+  PTT, Power off/standby/wake, and acceptance of the public synthetic locally
+  administered identity.
 - [ ] Pass ten restart/reconnect/PoE cycles for each physical endpoint role.
 - [ ] Pass a 30-minute idle/active soak for each physical endpoint role.
 - [ ] Record synchronized median, p95 and maximum latency and verify that no
@@ -71,6 +77,8 @@ None.
   GitHub prerelease is intentionally not a package-index publication.
 - [ ] Re-run the applicable physical gates from the exact release-candidate
   artifacts and retain sanitized results.
+- [ ] Publish the verified `1.0.0rc3` wheel/source archives and repeat the clean
+  installed-artifact smoke from the downloaded release assets.
 - [ ] Tag and publish `1.0.0` only when every v1 gate is complete.
 
 ## Published release-candidate artifacts

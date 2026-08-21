@@ -18,6 +18,12 @@
       "format": "ordinary_stuffed_checksum"
     },
     {
+      "direction": "radio_to_mic",
+      "raw_hex": "f541710503000102ff000cfd",
+      "format": "ordinary_stuffed_checksum",
+      "meaning": "soft-power shutdown transition prompt"
+    },
+    {
       "direction": "mic_to_radio",
       "raw_hex": "f54171ee0503011897fd",
       "format": "special_or_unknown"

@@ -1,7 +1,7 @@
 # CommandMic exhaustive feature matrix
 
 This is the authoritative coverage ledger for the exhaustive master plan,
-reviewed against package version `1.0.0rc1` and the independently packaged UIs.
+reviewed against package version `1.0.0rc3` and the independently packaged UIs.
 It remains a
 structured family-level ledger; later inventory passes expand each family
 into one row per CPS function, setting, message value, operating mode and
@@ -27,10 +27,10 @@ transparent raw button, display or audio interoperability in Phases 1 and 2.
 |---|---|---|---|---|---|---|---:|---|
 | NET-TRANSPORT | P0/P1/P2 | TCP/UDP addressing, ports and routing | verified-partial | Yes | Public wrapper passes bidirectional TCP fragmentation/coalescing through explicit relay routing | Public wrapper passes bidirectional TCP fragmentation/coalescing through explicit relay routing | 0 | configured ports/routed/address-error matrix |
 | FRAME-ORDINARY | P0 | ordinary framing, stuffing, length and CRC | verified-bidirectional | Yes | Yes | Yes | 0 | broaden corpus to every message length/value |
-| FRAME-SPECIAL | P0/P3 | `f5` special messages | observed | Yes | Replay only | Replay only | 0 | determine whether required for product sessions; then layout/semantics |
+| FRAME-SPECIAL | P0/P3 | `f5` special messages | verified-partial | Yes | Replay only | Handles and acknowledges both verified Power transition variants | 0 | map remaining special-message families and fields |
 | SESSION-BOOT | P0/P1/P2 | probe/stable startup and identity | verified-partial | Yes | Yes; public fixture uses a synthetic locally administered MAC | Yes | 0 | physical-radio acceptance of the public synthetic identity, ordered endpoint boots and unknown startup fields |
 | SESSION-RECOVERY | P1/P2/P3 | watchdog, reconnect, process replacement and PoE restart | verified-partial | Yes | Same-object and fresh-object restarts, abrupt peer-process replacement and routed TCP/UDP interruption pass fail-closed | Same-object and fresh-object restarts, abrupt peer-process replacement and routed TCP/UDP interruption pass fail-closed | 0 | directly retest immediate heartbeat/repeated-`f5/05/03` attach; then physical PoE restart and link-duration/address matrix |
-| POWER-STATE | P1/P2 | Power key and retained DC state | verified-partial | Yes | Decodes press/release in public endpoint/Lab GUI | Emits verified tap from public endpoint/Desktop GUI | 1 | long-hold product semantics and retained-state conformance |
+| POWER-STATE | P1/P2 | Power key and retained DC state | verified-bidirectional | Yes | Decodes press/release in public endpoint/Lab GUI | Physically verified soft-off, heartbeat-only standby and wake with exact `f5` acknowledgements | 1 | broader codeplug/retained-DC variants are deferred |
 | INPUT-PHYSICAL | P1/P2 | all known physical key wire codes | verified-partial | Yes | Public endpoint exposes all mapped key states plus PTT/Power | All 23 ordinary keys real-radio validated; Emergency explicitly gated | 1–3 | repeat/chord/hook behavior |
 | DISPLAY-PRIMARY | P1/P2 | primary 68-byte display transaction | verified-partial | Yes | Public lossless composer plus exact Lab GUI | Lossless receiver/model, ACK and exact Desktop GUI | 1 | auxiliary offsets8–27/36–55, extended characters, remaining screen catalogue |
 | VOLUME | P1/P2 | volume 0–32 and both clamps | verified-partial | Yes | Public 0–32 app state, mute, clamping, physical-key overlay, and best-effort 48 dB perceptual curve | Emits both keys; real-radio validated at levels 31/32 | 1 | measure the real radio/CommandMic acoustic transfer law and replace approximation |

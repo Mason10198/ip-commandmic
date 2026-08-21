@@ -34,6 +34,13 @@ from ip_commandmic.protocol import build_frame, classify_message
 
 
 class DisplayBufferTests(unittest.TestCase):
+    def test_primary_high_bit_preserves_character_and_embedded_decimal_point(self):
+        raw = bytes.fromhex("4241545431b33756") + bytes(60)
+        display = DisplayBuffer(raw)
+
+        self.assertEqual("BATT137V", display.primary_text)
+        self.assertEqual((6,), display.verified_decimal_points)
+
     def test_ui_metadata_covers_all_verified_steady_and_blink_planes(self):
         steady = verified_display_bit_controls()
         blink = verified_display_blink_bit_controls()

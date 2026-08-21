@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ip-commandmic"
-version = "1.0.0rc2"
+version = "1.0.0rc3"
 description = "Evidence-backed Python library for the Icom F5330D/F6330D IP CommandMic protocol"
 readme = "README.md"
 requires-python = ">=3.11"

@@ -310,7 +310,9 @@ class DisplayBuffer:
 
     @property
     def primary_text(self) -> str:
-        return self.primary_raw.rstrip(b"\x00").decode("ascii", "replace")
+        return bytes(value & 0x7F for value in self.primary_raw).rstrip(b"\x00").decode(
+            "ascii", "replace"
+        )
 
     @property
     def auxiliary_region_raw(self) -> bytes:
@@ -417,6 +419,11 @@ class DisplayBuffer:
 
     @property
     def verified_decimal_points(self) -> tuple[int, ...]:
+        embedded = tuple(
+            position
+            for position, value in enumerate(self.primary_raw, 1)
+            if value & 0x80 and 0x20 <= (value & 0x7F) <= 0x7E
+        )
         first = tuple(
             position
             for bit, position in VERIFIED_OFFSET58_DECIMAL_POINTS.items()
@@ -427,7 +434,7 @@ class DisplayBuffer:
             for bit, position in VERIFIED_OFFSET59_DECIMAL_POINTS.items()
             if self.secondary_point_state_byte & bit
         )
-        return first + second
+        return tuple(dict.fromkeys(embedded + first + second))
 
     @property
     def unresolved_offset59_low_nibble(self) -> int:

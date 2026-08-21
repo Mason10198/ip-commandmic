@@ -7,6 +7,19 @@ in `docs/PROTOCOL.md`; this file tracks package and compatibility changes.
 
 No changes yet.
 
+## 1.0.0rc3 — 2026-08-21
+
+- Completes physically verified real-radio soft-power off/on behavior: a
+  one-second Power hold, both `f5/05/03` transition variants, their two-frame
+  acknowledgement, heartbeat-only standby, and wake restoration.
+- Projects powered-off standby explicitly to applications: blank display,
+  status LED off, ordinary controls/PTT disabled, and Power retained.
+- Decodes the high bit of a printable primary-display byte as its embedded
+  decimal point while preserving the seven-bit character, verified by the
+  real `BATT 13.7V` display.
+- Records physically verified uppercase `B` and `V` rendering references for
+  consumers of the supplied CommandMic display geometry.
+
 ## 1.0.0rc2 — 2026-08-21
 
 - Adds cancellable bounded speaker playback through

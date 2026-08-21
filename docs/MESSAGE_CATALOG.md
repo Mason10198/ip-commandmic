@@ -306,10 +306,20 @@ session appeared after shutdown. Two trials released early enough to emit
 `01/09:00`; two remained held until the connection vanished and therefore had
 no observable release message.
 
+E-095/E-096 complete the product transition. After shutdown release the radio
+sends `f5/05/03` payload `02`; wake uses payload `01`. For either variant the
+CommandMic answers, in order, exact special frame `f54171ee0503011897fd` and
+`f5/05/04:01`. The radio then sends the matching `f5/05/04` response and closes
+TCP. Shutdown reopens a heartbeat-only standby session: LCD and LED are off,
+ordinary controls/PTT are unavailable, and Power remains active. Wake closes
+that standby session and proceeds through normal startup and display delivery.
+
 | Direction | Class/command | Payload | Meaning |
 |---|---|---|---|
 | Mic → radio | `01/09` | `01` | Power button pressed |
 | Mic → radio | `01/09` | `00` | Power button released |
+| Radio → mic | `f5 05/03` | `02` | Complete soft-power shutdown transition |
+| Radio → mic | `f5 05/03` | `01` | Begin soft-power wake transition |
 
 Holding the press state beyond the observed threshold causes a controlled
 session restart; this is not proof that either endpoint loses electrical power.

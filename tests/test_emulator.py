@@ -1421,6 +1421,37 @@ class EmulatorLoopbackTests(unittest.IsolatedAsyncioTestCase):
             server.close()
             await server.wait_closed()
 
+    async def test_verified_mic_answers_power_transition_prompt_on_stable_session(self):
+        emulator = CommandMicEmulator(
+            EmulatorConfig(
+                "mic",
+                "127.0.0.2",
+                "127.0.0.1",
+                verified_startup=True,
+                listen=True,
+                read_timeout=1.0,
+            )
+        )
+        emulator._mic_session_count = 1
+        server = await asyncio.start_server(emulator._session, "127.0.0.1", 0)
+        try:
+            port = server.sockets[0].getsockname()[1]
+            reader, writer = await asyncio.open_connection("127.0.0.1", port)
+            # Real-radio shutdown prompt captured after a successful Power hold.
+            writer.write(bytes.fromhex("f541710503000102ff000cfd"))
+            await writer.drain()
+            self.assertEqual(
+                b"".join(MIC_PROBE_RESPONSE),
+                await asyncio.wait_for(
+                    reader.readexactly(sum(map(len, MIC_PROBE_RESPONSE))), 1.0
+                ),
+            )
+            writer.close()
+            await writer.wait_closed()
+        finally:
+            server.close()
+            await server.wait_closed()
+
     async def test_verified_mic_stable_display_ack_and_heartbeat(self):
         emulator = CommandMicEmulator(
             EmulatorConfig(

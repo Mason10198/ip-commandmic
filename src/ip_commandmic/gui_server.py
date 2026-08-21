@@ -47,6 +47,7 @@ class GuiState:
             "connection": "starting",
             "session": None,
             "controls_ready": False,
+            "powered_off": False,
             "display": None,
             "status_led": "orange",
             "rx_audio_open": False,
@@ -101,28 +102,48 @@ class GuiState:
         if event == "listening":
             self.update(connection="waiting_for_radio", status_led="orange")
         elif event == "connected":
-            self.update(connection="negotiating", controls_ready=False, status_led="orange")
+            if self._state.get("powered_off"):
+                self.update(connection="standby", controls_ready=False, status_led="off")
+            else:
+                self.update(connection="negotiating", controls_ready=False, status_led="orange")
         elif event == "verified_mic_session":
             self.update(session=record.get("session_kind"))
         elif event == "mic_controls_ready":
             self.update(
                 connection="connected",
                 controls_ready=True,
+                powered_off=False,
                 tx_armed=bool(self._state.get("tx_available")),
             )
         elif event == "disconnected":
+            powered_off = bool(self._state.get("powered_off"))
             self.update(
-                connection="waiting_for_radio",
+                connection="standby" if powered_off else "waiting_for_radio",
                 controls_ready=False,
                 ptt_active=False,
                 tx_armed=False,
                 rx_audio_open=False,
-                status_led="orange",
+                status_led="off" if powered_off else "orange",
             )
+        elif event == "mic_power_transition_prompt":
+            transition = record.get("transition")
+            if transition == "shutdown":
+                self.update(
+                    connection="standby",
+                    controls_ready=False,
+                    powered_off=True,
+                    display=None,
+                    status_led="off",
+                    ptt_active=False,
+                    tx_armed=False,
+                    rx_audio_open=False,
+                )
+            elif transition == "wake":
+                self.update(connection="powering_on", controls_ready=False)
         elif event == "display_event":
             display = record.get("display")
             if isinstance(display, dict):
-                self.update(display=display)
+                self.update(display=display, powered_off=False)
         elif event == "received" and record.get("kind") == "audio_status":
             metadata = record.get("metadata")
             if isinstance(metadata, dict):
@@ -379,15 +400,17 @@ class SoftwareCommandMicEndpoint:
 
     async def _tap(self, button: str) -> None:
         emulator = self._emulator
-        if emulator is None or not emulator.controls_ready:
-            raise RuntimeError("CommandMic controls are not ready")
+        if emulator is None:
+            raise RuntimeError("CommandMic protocol session is not ready")
         if button == "power":
-            emulator.queue_power_tap()
-        else:
-            emulator.queue_key_tap(
-                button,
-                allow_emergency=button == "emergency",
-            )
+            await emulator.send_interactive_power_tap()
+            return
+        if not emulator.controls_ready:
+            raise RuntimeError("CommandMic controls are not ready")
+        emulator.queue_key_tap(
+            button,
+            allow_emergency=button == "emergency",
+        )
 
     def tap(self, button: str) -> None:
         if button not in (*ORDINARY_KEY_BUTTONS, "emergency", "power"):

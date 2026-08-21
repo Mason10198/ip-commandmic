@@ -50,7 +50,7 @@ class _FakeControlEndpoint:
     def queue_key_tap(self, button: str, *, allow_emergency: bool = False) -> None:
         self.calls.append((button, allow_emergency))
 
-    def queue_power_tap(self) -> None:
+    async def send_interactive_power_tap(self) -> None:
         self.calls.append(("power", True))
 
     async def press_interactive_key(
@@ -112,6 +112,37 @@ def test_gui_state_uses_orange_led_while_waiting_for_radio() -> None:
     assert snapshot["status_led"] == "orange"
 
 
+def test_gui_state_projects_powered_off_standby_until_wake_display() -> None:
+    state = GuiState(tx_available=True, microphone_device="Test microphone")
+    state.on_protocol_event(
+        {"event": "display_event", "display": {"primary_text": "462.700"}}
+    )
+    state.on_protocol_event({"event": "mic_controls_ready"})
+
+    state.on_protocol_event(
+        {"event": "mic_power_transition_prompt", "transition": "shutdown"}
+    )
+    standby = state.snapshot()
+    assert standby["connection"] == "standby"
+    assert standby["powered_off"] is True
+    assert standby["controls_ready"] is False
+    assert standby["display"] is None
+    assert standby["status_led"] == "off"
+
+    state.on_protocol_event({"event": "disconnected"})
+    state.on_protocol_event({"event": "connected"})
+    assert state.snapshot()["connection"] == "standby"
+
+    state.on_protocol_event(
+        {"event": "mic_power_transition_prompt", "transition": "wake"}
+    )
+    assert state.snapshot()["connection"] == "powering_on"
+    state.on_protocol_event(
+        {"event": "display_event", "display": {"primary_text": "BATT137V"}}
+    )
+    assert state.snapshot()["powered_off"] is False
+
+
 def test_desktop_routes_edge_controls_with_explicit_emergency_gate(tmp_path) -> None:
     runtime = InteractiveMicRuntime(
         local_ip="127.0.0.2",
@@ -139,6 +170,24 @@ def test_desktop_routes_edge_controls_with_explicit_emergency_gate(tmp_path) -> 
         ("emergency", True),
         ("power", True),
     ]
+
+
+def test_desktop_allows_power_before_ordinary_controls_are_ready(tmp_path) -> None:
+    runtime = InteractiveMicRuntime(
+        local_ip="127.0.0.2",
+        radio_ip="127.0.0.1",
+        microphone_device=None,
+        enable_tx=True,
+        play_rx_audio=False,
+        audit_path=tmp_path / "audit.jsonl",
+    )
+    endpoint = _FakeControlEndpoint()
+    endpoint.controls_ready = False
+    runtime._emulator = endpoint  # type: ignore[assignment]
+
+    asyncio.run(runtime._tap("power"))
+
+    assert endpoint.calls == [("power", True)]
 
 
 def test_application_audio_source_keeps_explicit_tx_gate_and_device_exclusivity(

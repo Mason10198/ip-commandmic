@@ -511,6 +511,7 @@ class CommandMicEmulator:
         self._mic_ptt_asserted = False
         self._mic_tx_error: BaseException | None = None
         self._mic_writer: asyncio.StreamWriter | None = None
+        self._mic_power_writer: asyncio.StreamWriter | None = None
         self._interactive_tx_task: asyncio.Task[int] | None = None
         self._interactive_tx_stop = asyncio.Event()
         self._interactive_ptt_lock = asyncio.Lock()
@@ -578,6 +579,30 @@ class CommandMicEmulator:
             raise ValueError("interactive Power tap must be between 0.02 and 0.45 seconds")
         self._mic_control_queue.put_nowait(("power", hold_seconds, False))
         self.audit.write("mic_power_queued", hold_seconds=hold_seconds)
+
+    async def send_interactive_power_tap(self, *, hold_seconds: float = 1.0) -> None:
+        """Hold Power on any verified mic session, including pre-display startup."""
+
+        if not 0.8 <= hold_seconds <= 2.0:
+            raise ValueError("interactive Power hold must be between 0.8 and 2 seconds")
+        writer = self._mic_power_writer
+        if writer is None or writer.is_closing():
+            raise RuntimeError("CommandMic Power session is not ready")
+        await self._send_frames(
+            writer, (encode_power_state("press"),), reason="mic_key:power:press"
+        )
+        await _sleep_with_1ms_timer(hold_seconds)
+        release_sent = not writer.is_closing()
+        if release_sent:
+            await self._send_frames(
+                writer, (encode_power_state("release"),), reason="mic_key:power:release"
+            )
+        self.audit.write(
+            "mic_key_tap_completed",
+            button="power",
+            hold_seconds=hold_seconds,
+            release_sent=release_sent,
+        )
 
     @property
     def controls_ready(self) -> bool:
@@ -2258,6 +2283,7 @@ class CommandMicEmulator:
     ) -> None:
         session_kind = "probe" if self._mic_session_count == 0 else "stable"
         self._mic_session_count += 1
+        self._mic_power_writer = writer
         self.audit.write("verified_mic_session", session_kind=session_kind)
         remainder = b""
         startup_sync_sent = False
@@ -2306,11 +2332,22 @@ class CommandMicEmulator:
                     )
                     identity_sent = True
                 elif (
-                    session_kind == "probe"
-                    and message.raw == RADIO_PROBE_HEAD[1]
+                    message.raw[0] == 0xF5
+                    and message_class == 0x05
+                    and command == 0x03
                     and not probe_response_sent
                 ):
                     probe_response_sent = True
+                    transition = (
+                        "shutdown" if message.body == b"\x02" else
+                        "wake" if message.body == b"\x01" else
+                        "unknown"
+                    )
+                    self.audit.write(
+                        "mic_power_transition_prompt",
+                        transition=transition,
+                        payload_hex=message.body.hex(),
+                    )
                     self._mic_probe_response_task = asyncio.create_task(
                         self._mic_probe_response_after_special_prompt(writer)
                     )
@@ -2451,6 +2488,8 @@ class CommandMicEmulator:
             self._mic_control_task = None
             self._interactive_tx_task = None
             self._mic_writer = None
+            if self._mic_power_writer is writer:
+                self._mic_power_writer = None
             writer.close()
             with contextlib.suppress(TimeoutError, ConnectionError, OSError):
                 await asyncio.wait_for(writer.wait_closed(), timeout=1.0)
