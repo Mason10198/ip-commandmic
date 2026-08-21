@@ -85,19 +85,20 @@ class AudioTests(unittest.TestCase):
         self.assertEqual({0}, set(silence))
         self.assertNotEqual({0}, set(b"".join(payloads)[250 * 16 : 350 * 16]))
     def test_ffmpeg_microphone_source_uses_bounded_directshow_capture(self):
-        source = FfmpegMicrophoneSource(
-            "Microphone (Test Device)",
-            executable="ffmpeg.exe",
-            queue_packets=1,
-            device_buffer_ms=20,
-        )
-        command = source.command
-        self.assertIn("audio=Microphone (Test Device)", command)
-        self.assertEqual("20", command[command.index("-audio_buffer_size") + 1])
-        self.assertEqual("8000", command[command.index("-ar") + 1])
-        self.assertEqual("1", command[command.index("-ac") + 1])
-        self.assertEqual("pipe:1", command[-1])
-        self.assertEqual(1, source.queue_packets)
+        with mock.patch("ip_commandmic.audio.sys.platform", "win32"):
+            source = FfmpegMicrophoneSource(
+                "Microphone (Test Device)",
+                executable="ffmpeg.exe",
+                queue_packets=1,
+                device_buffer_ms=20,
+            )
+            command = source.command
+            self.assertIn("audio=Microphone (Test Device)", command)
+            self.assertEqual("20", command[command.index("-audio_buffer_size") + 1])
+            self.assertEqual("8000", command[command.index("-ar") + 1])
+            self.assertEqual("1", command[command.index("-ac") + 1])
+            self.assertEqual("pipe:1", command[-1])
+            self.assertEqual(1, source.queue_packets)
 
     @staticmethod
     def radio_packet(sequence, *, session=1, value=1):

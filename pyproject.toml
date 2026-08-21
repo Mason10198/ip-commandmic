@@ -43,3 +43,6 @@ ip_commandmic = ["py.typed"]
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]
+markers = [
+  "reference_conformance: timing-sensitive complete endpoint loopback run on the Windows reference host",
+]

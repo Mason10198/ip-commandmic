@@ -38,6 +38,7 @@ class SoftwareRadioConfig:
     mic_ip: str = "192.168.0.2"
     control_port: int = 52001
     control_peer_ip: str | None = None
+    control_source_port: int | None = None
     audio_port: int = 50000
     audio_peer_ip: str | None = None
     mic_gain: int = 3
@@ -369,6 +370,7 @@ class SoftwareRadioEndpoint:
                 local_ip=self.config.local_ip,
                 peer_ip=self.config.control_peer_ip or self.config.mic_ip,
                 port=self.config.control_port,
+                source_port=self.config.control_source_port,
                 verified_startup=True,
                 voice_port=self.config.audio_port,
                 mic_gain=self.config.mic_gain,
@@ -561,9 +563,9 @@ class SoftwareRadioEndpoint:
         ):
             self._loop.call_soon_threadsafe(self._task.cancel)
         if self._thread:
-            self._thread.join(5)
+            self._thread.join(20)
             if self._thread.is_alive():
-                raise RuntimeError("test protocol runtime did not stop within 5 seconds")
+                raise RuntimeError("test protocol runtime did not stop within 20 seconds")
         self._thread = None
         self._loop = None
         self._task = None

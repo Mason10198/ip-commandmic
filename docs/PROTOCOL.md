@@ -178,9 +178,9 @@ The stable connection unambiguously used radio SYN → microphone SYN/ACK → ra
 ACK.
 
 The reference implementation first binds the captured radio-side source ports
-for both probe and stable connections. On Windows only, an immediate process
-restart can leave the prior TCP four-tuple retained even with `SO_REUSEADDR`.
-If the OS rejects that tuple with WinError 52, the implementation records a
+for both probe and stable connections. An immediate process restart can leave
+the prior TCP four-tuple retained even with `SO_REUSEADDR` on some hosts. If
+the OS rejects that bind as an address collision, the implementation records a
 `source_port_fallback` audit event and retries from an ephemeral source port.
 This is an implementation recovery policy, not evidence that the physical
 radio normally varies its source port or that a different port has been

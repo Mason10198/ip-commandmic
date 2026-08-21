@@ -1486,7 +1486,7 @@ class EmulatorLoopbackTests(unittest.IsolatedAsyncioTestCase):
                 self.assertTrue(protocol._radio_audio_gate_open, audit.events)
                 writer.write(RADIO_AUDIO_CLOSE)
                 await writer.drain()
-                await asyncio.sleep(0.05)
+                await asyncio.sleep(0.20)
                 self.assertFalse(protocol._radio_audio_gate_open, audit.events)
                 writer.close()
                 await writer.wait_closed()

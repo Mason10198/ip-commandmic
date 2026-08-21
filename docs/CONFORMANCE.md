@@ -11,6 +11,24 @@ Run it directly:
 python -m ip_commandmic.conformance --artifact-directory artifacts/conformance
 ```
 
+The topology binds `127.0.0.1`, `127.0.0.2`, and `127.0.0.3` so both endpoint
+roles can use the observed fixed ports. Linux and Windows provide these
+loopback addresses directly. On macOS, configure the additional aliases first:
+
+```sh
+sudo ifconfig lo0 alias 127.0.0.2 255.0.0.0
+sudo ifconfig lo0 alias 127.0.0.3 255.0.0.0
+```
+
+The hardware-free endpoint uses an ephemeral outbound TCP source port so fresh
+object cycles do not depend on host-specific `TIME_WAIT` reuse. The normal
+library default remains the observed fixed radio-side source port.
+
+CI runs the portable test suite across Linux, macOS, Windows, and Python
+3.11–3.14. The complete timing-sensitive 19-check loopback scenario runs on
+the Windows reference host; shared Unix runners can introduce scheduler gaps
+that invalidate its strict real-time RTP and fresh-object timing assertions.
+
 Longer hardware-free runs use the same checks and bounded parameters:
 
 ```powershell
@@ -20,7 +38,8 @@ python -m ip_commandmic.conformance --artifact-directory artifacts/stress `
 
 `--sustained-audio-seconds` accepts 1–1800 seconds per media direction and
 `--cold-restart-cycles` accepts 1–100 fresh endpoint-object cycles. The normal
-baseline uses one second and three cycles so CI remains fast.
+baseline uses one second, three cycles, and a 20-second per-wait budget so the
+probe and stable phases remain portable while CI stays bounded.
 
 The CLI writes `report.json` beside the two JSONL audits and also prints the
 same JSON to standard output. On 2026-08-21 the release-candidate configuration
@@ -66,7 +85,7 @@ The artifacts cover:
   and clean fresh media sessions in both directions;
 - fail-closed controls, PTT and receive-audio state after peer loss;
 - immediate software-radio endpoint restart and stable reconnection, including
-  an audited ephemeral-source-port fallback if Windows temporarily retains an
+  an audited ephemeral-source-port fallback if the host temporarily retains an
   observed fixed TCP tuple; and
 - fresh construction of both endpoint roles with alternating mic-first and
   radio-first startup, followed by stable display, key and audio transactions

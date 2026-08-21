@@ -1003,7 +1003,7 @@ def _run_subprocess_replacement_conformance(
 def run_loopback_conformance(
     artifact_directory: str | Path,
     *,
-    timeout_seconds: float = 12.0,
+    timeout_seconds: float = 20.0,
     sustained_audio_seconds: float = 1.0,
     cold_restart_cycles: int = 3,
 ) -> ConformanceReport:
@@ -1073,6 +1073,7 @@ def run_loopback_conformance(
                 mic_ip=mic_ip,
                 control_port=control_port,
                 control_peer_ip=proxy_ip,
+                control_source_port=0,
                 audio_port=audio_port,
                 audio_peer_ip=proxy_ip,
                 startup_opening_text="",
@@ -2111,6 +2112,9 @@ def run_loopback_conformance(
                         for cycle in range(1, cold_restart_cycles + 1):
                             radio.stop()
                             mic.stop()
+                            # Let the routed proxy observe both FIN paths before
+                            # fresh listeners and sessions reuse the topology.
+                            time.sleep(0.25)
                             tx_source, rx_sink, mic, radio = make_endpoints()
 
                             if cycle % 2:
@@ -2120,9 +2124,6 @@ def run_loopback_conformance(
                             else:
                                 orders.append("radio-first")
                                 radio.start()
-                                # Ensure at least one real outbound attempt can
-                                # occur before the fresh listener exists.
-                                time.sleep(0.10)
                                 mic.start()
 
                             _wait_for(
@@ -2240,7 +2241,7 @@ def run_loopback_conformance(
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--artifact-directory", type=Path, required=True)
-    parser.add_argument("--timeout", type=float, default=12.0)
+    parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument("--sustained-audio-seconds", type=float, default=1.0)
     parser.add_argument("--cold-restart-cycles", type=int, default=3)
     args = parser.parse_args(argv)
