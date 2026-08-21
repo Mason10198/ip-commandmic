@@ -21,9 +21,9 @@ physical acceptance gate.
   Python minor versions.
 - [x] The normal public-wrapper conformance baseline has no failed or
   `not_covered` result.
-- [x] Public CI definitions cover Python 3.11–3.14, Windows/macOS/Linux,
-  distribution inspection, installed-artifact tests and scheduled extended
-  conformance. The first hosted run remains a publication step.
+- [x] Hosted CI covers Python 3.11–3.14, Windows/macOS/Linux, distribution
+  inspection, installed-artifact tests and the timing-sensitive 19-check
+  loopback scenario on the Windows reference host.
 - [x] True child-process replacement and routed TCP/UDP interruption recover
   fail-closed through the public endpoints.
 - [x] All 23 ordinary controls, Power, every LED/backlight state, microphone
@@ -36,8 +36,9 @@ physical acceptance gate.
   passes all 19 checks: 90,000 continuous radio RTP packets, 90,012 continuous
   microphone RTP packets, zero radio playout concealments, ten fresh-object
   restart cycles, routed interruption and abrupt subprocess replacement.
-- [x] Local `1.0.0rc1` version metadata and release notes explicitly preserve
-  the remaining physical limitations.
+- [x] Public `v1.0.0rc1` version metadata and release notes explicitly preserve
+  the remaining physical limitations. The GitHub prerelease tag resolves to
+  commit `174740c35839940389404008c6fa6fabf6fe34e4`.
 
 ## Hardware-free release blockers
 
@@ -58,10 +59,26 @@ None.
 
 ## Publication steps
 
-- [ ] Configure the public Git remote and push `main`.
-- [ ] Confirm the first hosted CI and scheduled/manual extended-conformance run,
-  then configure branch/release policy.
-- [ ] Publish the locally prepared `1.0.0rc1` artifacts with the exact
-  remaining physical limitations.
-- [ ] Re-run all release gates from the release-candidate artifacts.
+- [x] Configure the public Git remote and push `main`.
+- [x] Confirm hosted CI on both the release pull request and merged `main`.
+- [x] Publish the CI-built `1.0.0rc1` wheel and source archive as a GitHub
+  prerelease with the exact remaining physical limitations and SHA-256 manifest.
+- [x] Download the public wheel, install it without the source tree, and verify
+  that it imports from site-packages as version `1.0.0rc1`.
+- [ ] Publish to TestPyPI/PyPI and verify an index-based clean install. The
+  GitHub prerelease is intentionally not a package-index publication.
+- [ ] Re-run the applicable physical gates from the exact release-candidate
+  artifacts and retain sanitized results.
 - [ ] Tag and publish `1.0.0` only when every v1 gate is complete.
+
+## Published release-candidate artifacts
+
+- Release: <https://github.com/Mason10198/ip-commandmic/releases/tag/v1.0.0rc1>
+- Wheel: `ip_commandmic-1.0.0rc1-py3-none-any.whl`, SHA-256
+  `6514be5b04c952c367897386667e301464436a3edab31bd4036b7c97a11da45c`
+- Source: `ip_commandmic-1.0.0rc1.tar.gz`, SHA-256
+  `8e6bdd2382d0287d6cae1a328e16c55aba5005c877e1511b6022c1f809725fac`
+
+The tag is lightweight because the release environment had no configured
+signing key or GPG executable. Final `1.0.0` should use a maintainer-controlled
+signed tag when signing infrastructure is available.
