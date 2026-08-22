@@ -1,0 +1,49 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: Successful CI run containing the accepted distributions
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+
+jobs:
+  publish:
+    name: Publish accepted distributions
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/ip-commandmic/
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Confirm artifact run belongs to this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACCEPTED_RUN_ID: ${{ inputs.run_id }}
+        run: |
+          run_sha="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${ACCEPTED_RUN_ID}" --jq .head_sha)"
+          test "${run_sha}" = "${GITHUB_SHA}"
+
+      - name: Download accepted CI distributions
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACCEPTED_RUN_ID: ${{ inputs.run_id }}
+        run: gh run download "${ACCEPTED_RUN_ID}" --name ip-commandmic-distributions --dir dist
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Recheck accepted distributions
+        run: python scripts/verify_release.py --dist dist
+
+      - name: Publish exact accepted files
+        uses: pypa/gh-action-pypi-publish@release/v1
+

@@ -40,12 +40,15 @@ contract and `RELEASE_READINESS.md` is the live gate ledger.
 2. Publish a GitHub prerelease from the accepted commit using the exact CI-built
    wheel and source archive, attach a SHA-256 manifest, then download and install
    the public wheel into a new environment.
-3. Publish the candidate to TestPyPI first and install it by version into a new
-   environment. Repeat the typed-composer smoke test and baseline conformance.
-4. Create the immutable Git tag only from the accepted commit. The tag, GitHub
+3. A TestPyPI smoke is optional when clean wheel and sdist installations have
+   already passed from the exact accepted artifacts. It is not a separate
+   product-acceptance gate.
+4. Create the immutable Git tag from the accepted commit. The tag, GitHub
    release, wheel and sdist must all use the same version and SHA-256 values.
-5. Publish those exact files to PyPI. Do not rebuild between acceptance and
-   upload.
+5. Run the native `Publish to PyPI` workflow with the accepted CI run ID. It
+   rejects artifacts from any commit other than the tagged commit, downloads
+   the CI-built files and publishes those exact bytes through PyPI trusted
+   publishing. Do not rebuild between acceptance and upload.
 6. Verify a normal index install, documentation links and release hashes, then
    mark the matching readiness publication items complete.
 

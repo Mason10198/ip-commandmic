@@ -85,7 +85,8 @@ None.
   from that accepted candidate except for `__version__`.
 - [x] Publish the verified `1.0.0rc3` wheel/source archives and repeat the clean
   installed-artifact smoke from the downloaded release assets.
-- [ ] Tag and publish `1.0.0` only when every v1 gate is complete.
+- [ ] Tag the accepted commit, publish its exact CI artifacts to GitHub and
+  PyPI, verify the index install, then close the `1.0.0` publication record.
 
 ## Final 1.0.0 candidate
 
