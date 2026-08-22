@@ -23,10 +23,10 @@ Nothing may be counted complete merely because it was not seen.
 ## Current handoff checkpoint (2026-08-21)
 
 The independently packaged components are `ip-commandmic 1.0.0` (final
-candidate),
+stable),
 `ip-commandmic-desktop 0.1.0-alpha.9`, and `ip-commandmic-lab
-0.1.0-alpha.32`. The library rc3 and Lab alpha.32 prereleases are public on
-GitHub; TestPyPI and PyPI remain pending. Automated suites
+0.1.0-alpha.32`. Library 1.0.0 is published on GitHub and PyPI; Lab alpha.32 is
+public on GitHub. Automated suites
 pass (202
 library tests plus 5 subtests, 3
 Desktop tests, and 19 Lab tests). The `ip-commandmic-ui` and
@@ -157,8 +157,8 @@ checks in 3,676.282 seconds. Its two 30-minute sustained directions carried
 packets, followed by ten fresh-object restart cycles, routed-link interruption
 and abrupt child-process replacement. Hardware-free v1 conformance is complete.
 E-098 closes both physical restart/stability gates from the published rc3 wheel
-with 20/20 recoveries and two bounded five-minute soaks. Only final
-artifact/package-index publication remains a scoped v1 release blocker;
+with 20/20 recoveries and two bounded five-minute soaks. Final
+artifact/package-index publication is complete;
 synchronized acoustic/RF latency is post-v1 product characterization.
 
 ## Delivery priorities

@@ -77,7 +77,7 @@ None.
   prerelease with the exact remaining physical limitations and SHA-256 manifest.
 - [x] Download the public wheel, install it without the source tree, and verify
   that it imports from site-packages as version `1.0.0rc2`.
-- [ ] Publish to PyPI and verify an index-based clean install. A TestPyPI smoke
+- [x] Publish to PyPI and verify an index-based clean install. A TestPyPI smoke
   is optional when the exact final artifacts already pass isolated-install
   verification; it is not a separate product-acceptance gate.
 - [x] Re-run the applicable physical gates from the exact published rc3
@@ -85,7 +85,7 @@ None.
   from that accepted candidate except for `__version__`.
 - [x] Publish the verified `1.0.0rc3` wheel/source archives and repeat the clean
   installed-artifact smoke from the downloaded release assets.
-- [ ] Tag the accepted commit, publish its exact CI artifacts to GitHub and
+- [x] Tag the accepted commit, publish its exact CI artifacts to GitHub and
   PyPI, verify the index install, then close the `1.0.0` publication record.
 
 ## Final 1.0.0 candidate
@@ -97,6 +97,19 @@ None.
   differs only in the public `__version__` value.
 - Final artifact hashes belong in the immutable release record rather than in
   files embedded inside the source archive.
+
+## Published 1.0.0 artifacts
+
+- GitHub release: <https://github.com/Mason10198/ip-commandmic/releases/tag/v1.0.0>
+- PyPI release: <https://pypi.org/project/ip-commandmic/1.0.0/>
+- Accepted tag commit: `eaa6f7f`
+- Acceptance CI: <https://github.com/Mason10198/ip-commandmic/actions/runs/32549952658>
+- Trusted-publishing run: <https://github.com/Mason10198/ip-commandmic/actions/runs/32550330426>
+- Wheel SHA-256: `6fb6d93d9bb21a2ec0c2e0a529fda7dd6e34e1bbdccad52d61c29cc4dc28e84c`
+- Source SHA-256: `2c135b6428da1d42aecfb186da9237990ce7d7476dd1939eb0b93115f888d904`
+- Both files were downloaded again from PyPI and matched the GitHub/CI hashes.
+  A clean Python environment imported version `1.0.0` from `site-packages` and
+  exercised typed microphone-gain and key composers successfully.
 
 ## Published release-candidate artifacts
 
