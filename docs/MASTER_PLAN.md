@@ -439,13 +439,13 @@ broad fuzzing is permitted against hardware at any tier.
 
 ## Delivery phases
 
-Status snapshot (2026-08-13): Phase 0 is substantially complete. Phases 1A–1C
-have working public APIs, a packaged reference application and real-hardware
-evidence, but not every Phase 1D acceptance result. Phases 2A–2B now have a
-public `SoftwareRadioEndpoint` and packaged Lab GUI, but still require
-the real-mic restart/soak matrix, continuous arbitrary application-audio input
-and the node bridge. Phase 3 API consolidation began with package `0.2.0`.
-Phases 4–5 remain open. Implemented is never treated as fully mapped or accepted.
+Status snapshot (2026-08-21): Phase 0 and the scoped v1 SDK/Phase 3 contract are
+complete. Phase 1A–1D endpoint and physical acceptance gates pass; the Desktop
+application now needs its first intentional public repository, CI and Windows
+alpha package. Phase 2A–2B and the Lab physical acceptance gates pass; Lab needs
+only a stable-library rebuild and alpha.33 publication. Phase 2C's generic node
+bridge and Phases 4–5 remain open. Implemented is never treated as fully mapped
+or exhaustively decoded.
 
 ### Phase 0 — Shared protocol foundation and safe lab (substantially complete)
 
@@ -483,8 +483,8 @@ SVG. It is a conventional resizable native-webview window with standard OS
 controls and no HTTP server; the cog opens a separate settings window with live
 connection controls and a bounded protocol console.
 Protocol/network/direct-native-audio work is isolated from the renderer thread.
-Remaining Phase 1A work is auxiliary display-byte closure, uncommon screen
-corpus coverage and recovery acceptance.
+Auxiliary display-byte closure and uncommon screen-corpus coverage remain
+post-alpha mapping work; scoped recovery acceptance passes.
 
 #### Phase 1B — Every virtual CommandMic control
 
@@ -550,8 +550,8 @@ button/PTT/Power events, library-decoded common audio-file and tone output,
 0–32 volume, bounded Parrot replay, live microphone spectrum/metering,
 streaming WAV recording and validated expert raw frames. They reuse the shared
 startup, heartbeat, ACK, RTP, display metadata, media and parser implementation.
-This is a packaged public-alpha research tool, not completion of the Phase 2
-hardware acceptance gates.
+The packaged Lab is physically accepted for this documented public-alpha scope;
+it is not completion of advanced feature mapping or the Phase 2C node bridge.
 
 #### Phase 2A — Complete software-radio session and output composer
 
@@ -613,17 +613,19 @@ final reproducibility and limitations audit.
 
 ## Immediate next actions
 
-1. Repeat the complete Lab matrix against the physical CommandMic, including
-   controls, display, volume, recording, Parrot, live gain changes, playback,
-   ten PoE cycles and a bounded five-minute idle/active soak.
-2. Retain synchronized acoustic/RF latency as post-v1 product characterization;
+1. Publish Desktop `0.1.0-alpha.10`: complete its public audit and intentional
+   initial commit, add hosted CI, rebuild/smoke the Windows ZIP against stable
+   library 1.x, and publish checksummed artifacts with the accepted real-radio
+   matrix.
+2. Publish Lab `0.1.0-alpha.33`: run stable-library CI, rebuild/smoke the
+   Windows ZIP and publish checksummed artifacts. No physical retest is required
+   unless runtime code changes beyond the accepted library version metadata.
+3. Retain synchronized acoustic/RF latency as post-v1 product characterization;
    the software callback/pacing and device/network failure gates are complete.
-3. Finish auxiliary display-byte and uncommon screen-corpus mapping, feeding
+4. Finish auxiliary display-byte and uncommon screen-corpus mapping, feeding
    every result into the existing lossless GUI display model.
-4. Map repeat/chord behavior, long-Power semantics and hook/accessory input. Keep Emergency
+5. Map repeat/chord behavior, long-Power semantics and hook/accessory input. Keep Emergency
    behind its separately authorized safety phase.
-5. Complete both products' cold-start, control, screen, audio, reconnect and soak
-   gate before broadening advanced CPS feature semantics.
 6. Add a generic continuous application-audio source and reference
    AllStarLink-style adapter on top of `SoftwareRadioEndpoint`.
 
