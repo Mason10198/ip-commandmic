@@ -40,8 +40,6 @@ endorsed by Icom Incorporated.
 - `tests`: sanitized fixtures and regression/conformance tests.
 
 Package-level changes are summarized in [`CHANGELOG.md`](CHANGELOG.md).
-Cross-repository work is organized on the
-[IP CommandMic GitHub Project](https://github.com/users/Mason10198/projects/1).
 
 The primary application and reference tools live separately:
 
