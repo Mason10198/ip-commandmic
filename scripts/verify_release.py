@@ -142,6 +142,12 @@ def _test_installed_artifact(artifact: Path, repository: Path) -> None:
         shutil.copytree(repository / "tests", bundle / "tests")
         shutil.copytree(repository / "docs", bundle / "docs")
         shutil.copytree(repository / "wireshark", bundle / "wireshark")
+        (bundle / "scripts").mkdir()
+        shutil.copy2(
+            repository / "scripts" / "run_physical_acceptance.py",
+            bundle / "scripts" / "run_physical_acceptance.py",
+        )
+        shutil.copy2(repository / "pyproject.toml", bundle / "pyproject.toml")
         clean_environment = dict(os.environ)
         clean_environment.pop("PYTHONPATH", None)
         clean_environment.pop("PYTHONHOME", None)
