@@ -1,7 +1,7 @@
 # Experiment runbook
 
 This runbook is now governed by
-[`MASTER_PLAN.md`](MASTER_PLAN.md) and the coverage ledger in
+[`ROADMAP.md`](ROADMAP.md) and the coverage ledger in
 [`FEATURE_MATRIX.md`](FEATURE_MATRIX.md). The earlier campaign below remains a
 useful operational sequence, but its limited scope and exclusions no longer
 define project completion.
@@ -29,7 +29,7 @@ that codeplug changes.
 - Firmware, cloning, stun/kill, remote-monitor and emergency work is prohibited
   in ordinary trials. These functions remain in the exhaustive feature matrix
   and may be investigated only under the separately authorized Tier-3 process
-  in `MASTER_PLAN.md`, beginning with passive/inert/software-only evidence.
+  in `ROADMAP.md`, beginning with passive/inert/software-only evidence.
 - Keep an accessible physical radio power/TX inhibit control.
 
 ## Naming and event logging

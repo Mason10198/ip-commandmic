@@ -20,7 +20,7 @@ research console scripts.
 Connecting either endpoint sends active TCP and UDP traffic. Disconnect the
 hardware endpoint being replaced. Keep the real radio disconnected during
 software-only work. Any later test involving a radio must use the containment,
-authorization and explicit TX gates in [`MASTER_PLAN.md`](MASTER_PLAN.md).
+authorization and explicit TX gates in [`ROADMAP.md`](ROADMAP.md).
 
 Emergency is not part of ordinary conformance. Arbitrary `send_raw()` traffic,
 programming, firmware, destructive radio features and broad hardware fuzzing

@@ -27,7 +27,7 @@ audio = ["miniaudio>=1.71,<2"]
 dev = ["pytest>=8"]
 
 [project.urls]
-Documentation = "https://github.com/mason10198/ip-commandmic/tree/main/docs"
+Documentation = "https://github.com/Mason10198/ip-commandmic/blob/main/docs/README.md"
 Repository = "https://github.com/mason10198/ip-commandmic"
 Issues = "https://github.com/mason10198/ip-commandmic/issues"
 

@@ -131,7 +131,7 @@ complete or removed from the project.
 ## Evidence and safety boundary
 
 No protocol claim becomes verified from software loopback alone. Hardware
-claims require the evidence and repetition rules in `MASTER_PLAN.md`. Raw
+claims require the evidence and repetition rules in `ROADMAP.md`. Raw
 captures, codeplugs, recorded voice, identifiers and proprietary Icom material
 remain outside the public repository. RF-capable tests retain their existing
 safety tier and require explicit containment and authorization.
