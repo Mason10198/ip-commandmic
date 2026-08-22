@@ -60,11 +60,11 @@ None.
   all 23 ordinary keys, display/indicators, receive audio, live transmit audio,
   PTT, Power off/standby/wake, and acceptance of the public synthetic locally
   administered identity.
-- [ ] Pass ten restart/reconnect/PoE cycles for each physical endpoint role.
-- [ ] Pass a bounded five-minute idle/active soak for each physical endpoint
-  role. The accepted 30-minute real-CommandMic/software-radio run already
-  exceeds this duration; the opposite role remains to be repeated from the
-  exact candidate installation.
+- [x] Pass ten restart/reconnect/physical-power cycles for each physical
+  endpoint role from the exact published candidate: 20/20 recoveries accepted.
+- [x] Pass a bounded five-minute idle/active soak for each physical endpoint
+  role from the exact published candidate, with no transient instability, PTT
+  assertion or endpoint error.
 - [ ] Record synchronized median, p95 and maximum latency and verify that no
   fault path produces stale audio, post-stop RTP or stuck PTT.
 

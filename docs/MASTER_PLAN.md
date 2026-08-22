@@ -154,9 +154,11 @@ The 2026-08-21 release-candidate hardware-free gate passed all 19 public-wrapper
 checks in 3,676.282 seconds. Its two 30-minute sustained directions carried
 90,000 continuous radio RTP packets and 90,012 continuous microphone RTP
 packets, followed by ten fresh-object restart cycles, routed-link interruption
-and abrupt child-process replacement. Hardware-free v1 conformance is complete;
-the physical endpoint matrices, physical soak/restart cycles and synchronized
-latency remain the current release blockers.
+and abrupt child-process replacement. Hardware-free v1 conformance is complete.
+E-098 closes both physical restart/stability gates from the published rc3 wheel
+with 20/20 recoveries and two bounded five-minute soaks. Synchronized physical
+latency and final artifact/package-index publication remain the current release
+blockers.
 
 ## Delivery priorities
 
