@@ -198,8 +198,10 @@ Before final `1.0.0`, the exact candidate must still pass:
    supported controls, display/indicators, receive audio, live transmit audio
    and PTT;
 3. ten restart/reconnect/PoE cycles for each physical endpoint role;
-4. a bounded five-minute idle/active soak for each role; and
-5. synchronized median, p95 and maximum end-to-end latency measurement.
+4. a bounded five-minute idle/active soak for each role.
+
+Synchronized acoustic/RF end-to-end latency is useful post-v1 product
+characterization, not a protocol-library release gate.
 
 The current gate ledger is [`RELEASE_READINESS.md`](RELEASE_READINESS.md).
 Normative wire claims and their retained evidence identifiers are in

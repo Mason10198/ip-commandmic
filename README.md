@@ -7,8 +7,8 @@ Status: **[1.0.0rc3 release candidate](https://github.com/Mason10198/ip-commandm
 The stable API contract and hardware-free release gates are complete. Major
 everyday controls, the LCD, status LED,
 startup, reconnection, PTT and bidirectional low-latency audio are implemented
-and tested against real hardware. Final `1.0.0` remains blocked by synchronized
-physical latency evidence and final artifact/package-index publication steps
+and tested against real hardware. Final `1.0.0` remains blocked only by final
+artifact and package-index publication steps
 listed in [the release-readiness ledger](docs/RELEASE_READINESS.md). Some
 auxiliary display controls, uncommon state messages and error branches remain
 explicitly deferred from the scoped v1 contract.

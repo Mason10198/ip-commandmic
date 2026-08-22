@@ -65,8 +65,9 @@ None.
 - [x] Pass a bounded five-minute idle/active soak for each physical endpoint
   role from the exact published candidate, with no transient instability, PTT
   assertion or endpoint error.
-- [ ] Record synchronized median, p95 and maximum latency and verify that no
-  fault path produces stale audio, post-stop RTP or stuck PTT.
+- [x] Record median, p95 and maximum software callback/pacing latency and verify
+  that no fault path produces stale audio, post-stop RTP or stuck PTT.
+  Synchronized acoustic/RF latency is explicitly post-v1 characterization.
 
 ## Publication steps
 

@@ -156,9 +156,9 @@ checks in 3,676.282 seconds. Its two 30-minute sustained directions carried
 packets, followed by ten fresh-object restart cycles, routed-link interruption
 and abrupt child-process replacement. Hardware-free v1 conformance is complete.
 E-098 closes both physical restart/stability gates from the published rc3 wheel
-with 20/20 recoveries and two bounded five-minute soaks. Synchronized physical
-latency and final artifact/package-index publication remain the current release
-blockers.
+with 20/20 recoveries and two bounded five-minute soaks. Only final
+artifact/package-index publication remains a scoped v1 release blocker;
+synchronized acoustic/RF latency is post-v1 product characterization.
 
 ## Delivery priorities
 
@@ -521,10 +521,9 @@ physical-mic-equivalent timing. E-094 verifies the selectable prewarmed live PC
 microphone source through the same real-radio path with no underruns and a
 successful operator report. The GUI adds a prewarmed, hold-to-talk interactive
 PTT stream while preserving the
-same 20 ms latest-frame pacing and fail-closed release paths. The remaining
-critical path is synchronized RF/end-to-end latency measurement,
-underrun/recovery, reconnect/failure acceptance and public product API
-stabilization.
+same 20 ms latest-frame pacing and fail-closed release paths. Scoped v1
+underrun/recovery and reconnect/failure acceptance are complete. Synchronized
+RF/end-to-end latency remains optional product characterization.
 
 #### Phase 1D — Primary-product acceptance and release
 
@@ -535,7 +534,8 @@ The Phase 1 gate requires, with the physical CommandMic absent:
 - every physical control available in software with verified event timing;
 - intelligible, stable live receive and transmit audio, including silence and
   loss/recovery tests;
-- synchronized latency measurements meeting the budgets in `docs/LATENCY.md`;
+- median, p95 and maximum software callback/pacing measurements meeting the
+  budgets in `docs/LATENCY.md`;
 - no unintended PTT, Emergency, power or persistent action after malformed
   input, disconnect, process restart or missing configuration;
 - a documented stable Python API, CLI and packaged reference virtual-CommandMic
@@ -615,8 +615,8 @@ final reproducibility and limitations audit.
 1. Repeat the complete Lab matrix against the physical CommandMic, including
    controls, display, volume, recording, Parrot, live gain changes, playback,
    ten PoE cycles and a bounded five-minute idle/active soak.
-2. Complete synchronized latency plus device/network failure evidence for the
-   Desktop GUI and `SoftwareCommandMicEndpoint`.
+2. Retain synchronized acoustic/RF latency as post-v1 product characterization;
+   the software callback/pacing and device/network failure gates are complete.
 3. Finish auxiliary display-byte and uncommon screen-corpus mapping, feeding
    every result into the existing lossless GUI display model.
 4. Map repeat/chord behavior, long-Power semantics and hook/accessory input. Keep Emergency

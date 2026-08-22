@@ -92,8 +92,8 @@ Version 1 must provide:
    role;
 8. both physical endpoint matrices pass with no stuck PTT, stale audio,
    post-stop RTP or display divergence;
-9. median, p95 and maximum software/audio latency are recorded for the
-   controlled lab;
+9. median, p95 and maximum software callback/pacing latency are recorded for
+   the controlled lab;
 10. wheel and source distribution install and test from clean Python 3.11,
    3.12, 3.13 and 3.14 environments; and
 11. the normative specification, message catalogue, API guide, feature matrix,
@@ -121,6 +121,7 @@ visible and raw data is preserved:
 - remote monitor, stun, kill, revive and other destructive behavior;
 - firmware/configuration transfer and whether it is carried on this link;
 - complete interpretation of every auxiliary display byte and extended glyph;
+- synchronized acoustic/RF mouth-to-speaker and microphone-to-RF latency;
 - the exact acoustic speaker-volume transfer curve; and
 - internal names for unresolved microphone DSP behavior.
 

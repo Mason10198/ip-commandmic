@@ -61,19 +61,21 @@ audio-device hardware latency:
 - default receive software buffering: no more than one packet interval/20 ms;
 - minimum receive profile: no intentional buffer interval;
 - transmit packetization: one 20 ms frame, with no multi-frame batching;
-- no stale-audio replay; and
-- measured end-to-end mouth-to-speaker and microphone-to-RF latency documented
-  before Phase 1 release.
+- no stale-audio replay.
+
+Synchronized acoustic/RF mouth-to-speaker and microphone-to-RF latency is
+post-v1 product characterization. It includes radios, RF paths, transducers and
+local audio devices outside the protocol library's controlled boundary.
 
 E-092 verifies usable live receive voice without backend drops or the former
-whole-gate delay. It does not yet provide synchronized end-to-end latency, which
-remains an explicit acceptance item.
+whole-gate delay. It does not provide synchronized acoustic end-to-end latency;
+that measurement is optional post-v1 characterization.
 
 E-093 verifies the transmit network scheduler against the real radio. Its 160
 packets averaged 19.9995 ms with a 19.9406–20.0536 ms wire range, no catch-up
 burst, no sequence/timestamp error, 30.043 ms PTT-to-first-RTP latency, and
 0.014 ms maximum sender-deadline lateness. Live capture-device and RF audio
-latency remain acceptance items.
+latency remain optional characterization items.
 
 E-094 verifies the prewarmed live capture path through real-radio acceptance.
 The source uses a 20 ms DirectShow device buffer and one-packet latest-frame

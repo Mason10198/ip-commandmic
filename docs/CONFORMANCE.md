@@ -103,13 +103,14 @@ without local audio hardware through the public wrappers.
 The hardware-free v1 gate is complete, but this baseline is not the exhaustive
 product gate. Remaining conformance work:
 
-1. run the separate physical-CommandMic/Lab and real-radio/Desktop matrices,
-   including synchronized latency and calibrated volume/acoustic measurements;
-2. complete ten physical restart/PoE cycles and a bounded five-minute physical
-   idle/active soak for each endpoint role;
-3. expand the synthetic display corpus and map hold/repeat/chord cases as
+1. retain the accepted physical-CommandMic/Lab and real-radio/Desktop matrices;
+2. retain the accepted ten physical restart/power cycles and bounded
+   five-minute physical idle/active soak for each endpoint role;
+3. treat synchronized acoustic/RF latency and calibrated volume measurements
+   as post-v1 product characterization;
+4. expand the synthetic display corpus and map hold/repeat/chord cases as
    post-v1 research unless the supported v1 contract is broadened; and
-4. keep Emergency and other safety-critical traffic behind their separately
+5. keep Emergency and other safety-critical traffic behind their separately
    authorized test phase.
 
 Raw captures, codeplugs and hardware-derived private artifacts are not inputs to
