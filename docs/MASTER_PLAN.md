@@ -440,10 +440,10 @@ broad fuzzing is permitted against hardware at any tier.
 ## Delivery phases
 
 Status snapshot (2026-08-21): Phase 0 and the scoped v1 SDK/Phase 3 contract are
-complete. Phase 1A–1D endpoint and physical acceptance gates pass; the Desktop
-application now needs its first intentional public repository, CI and Windows
-alpha package. Phase 2A–2B and the Lab physical acceptance gates pass; Lab needs
-only a stable-library rebuild and alpha.33 publication. Phase 2C's generic node
+complete. Phase 1A–1D endpoint and physical acceptance gates pass; Desktop
+alpha.10 is public with hosted CI and a checksummed Windows package. Phase 2A–2B
+and the Lab physical acceptance gates pass; Lab alpha.33 is public against the
+stable library. Phase 2C's generic node
 bridge and Phases 4–5 remain open. Implemented is never treated as fully mapped
 or exhaustively decoded.
 
@@ -613,14 +613,12 @@ final reproducibility and limitations audit.
 
 ## Immediate next actions
 
-1. Publish Desktop `0.1.0-alpha.10`: complete its public audit and intentional
-   initial commit, add hosted CI, rebuild/smoke the Windows ZIP against stable
-   library 1.x, and publish checksummed artifacts with the accepted real-radio
-   matrix.
-2. Publish Lab `0.1.0-alpha.33`: run stable-library CI, rebuild/smoke the
-   Windows ZIP and publish checksummed artifacts. No physical retest is required
-   unless runtime code changes beyond the accepted library version metadata.
-3. Retain synchronized acoustic/RF latency as post-v1 product characterization;
+1. Add concise endpoint integration examples and recipes for third-party
+   software using both stable endpoint roles, including lifecycle, callbacks,
+   audio injection/capture, reconnect and safety boundaries.
+2. Decide whether Phase 2C's generic AllStarLink-style audio/PTT/COR adapter is
+   the next product deliverable; keep it outside the core protocol package.
+3. Retain synchronized acoustic/RF latency as optional product characterization;
    the software callback/pacing and device/network failure gates are complete.
 4. Finish auxiliary display-byte and uncommon screen-corpus mapping, feeding
    every result into the existing lossless GUI display model.
