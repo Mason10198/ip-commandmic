@@ -4,6 +4,7 @@
 /build/
 /build.pre-rename/
 /dist/
+/dist-v1/
 *.egg-info/
 __pycache__/
 *.py[cod]

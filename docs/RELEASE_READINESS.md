@@ -77,13 +77,25 @@ None.
   prerelease with the exact remaining physical limitations and SHA-256 manifest.
 - [x] Download the public wheel, install it without the source tree, and verify
   that it imports from site-packages as version `1.0.0rc2`.
-- [ ] Publish to TestPyPI/PyPI and verify an index-based clean install. The
-  GitHub prerelease is intentionally not a package-index publication.
-- [ ] Re-run the applicable physical gates from the exact release-candidate
-  artifacts and retain sanitized results.
+- [ ] Publish to PyPI and verify an index-based clean install. A TestPyPI smoke
+  is optional when the exact final artifacts already pass isolated-install
+  verification; it is not a separate product-acceptance gate.
+- [x] Re-run the applicable physical gates from the exact published rc3
+  artifacts and retain sanitized results. The final runtime source is unchanged
+  from that accepted candidate except for `__version__`.
 - [x] Publish the verified `1.0.0rc3` wheel/source archives and repeat the clean
   installed-artifact smoke from the downloaded release assets.
 - [ ] Tag and publish `1.0.0` only when every v1 gate is complete.
+
+## Final 1.0.0 candidate
+
+- Version metadata is consistently `1.0.0`.
+- The complete source-tree suite passes: 202 tests and 5 subtests.
+- The wheel and source archive pass structural release verification.
+- Compared with the physically accepted `v1.0.0rc3` tag, package runtime code
+  differs only in the public `__version__` value.
+- Final artifact hashes belong in the immutable release record rather than in
+  files embedded inside the source archive.
 
 ## Published release-candidate artifacts
 

@@ -81,7 +81,7 @@ V1_STABLE_EXPORTS = tuple(
 )
 
 __all__ = (*tuple(_SYMBOL_MODULE), "V1_STABLE_EXPORTS", "V1_ADVANCED_EXPORTS")
-__version__ = "1.0.0rc3"
+__version__ = "1.0.0"
 
 
 def __getattr__(name: str) -> Any:

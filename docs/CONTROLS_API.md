@@ -1,6 +1,6 @@
 # Python library API
 
-Status: public reference API for package version `1.0.0rc1`.
+Status: public reference API for package version `1.0.0`.
 
 The `ip_commandmic` package is the implementation shared by the IP CommandMic
 Desktop, Web gateway, IP CommandMic Lab application, capture tools and tests.

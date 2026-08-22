@@ -1,6 +1,6 @@
-# CommandMic Ethernet protocol specification (working draft)
+# CommandMic Ethernet protocol specification
 
-Status: working normative specification, updated through evidence E-097 and the
+Status: version 1 normative specification, updated through evidence E-098 and the
 v1 library/API/dissector audit of 2026-08-20. “Verified” means directly observed and
 reproduced; unknown command semantics are preserved and never promoted merely
 because a software endpoint can replay them.

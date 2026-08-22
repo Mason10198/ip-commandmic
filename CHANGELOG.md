@@ -7,6 +7,18 @@ in `docs/PROTOCOL.md`; this file tracks package and compatibility changes.
 
 No changes yet.
 
+## 1.0.0 — 2026-08-21
+
+- Declares the documented stable API and language-independent wire protocol
+  contract supported under semantic versioning for the `1.x` series.
+- Closes both physical endpoint matrices, 20/20 physical-power recovery cycles,
+  and both bounded five-minute stability soaks using the published rc3 wheel.
+- Retains measured callback, buffering, packetization and pacing latency as the
+  library gate while classifying acoustic/RF end-to-end latency as optional
+  post-v1 product characterization.
+- Includes the verified soft-power state machine and final primary-display
+  character/decimal-point corrections accepted during rc3 hardware testing.
+
 ## 1.0.0rc3 — 2026-08-21
 
 - Completes physically verified real-radio soft-power off/on behavior: a
