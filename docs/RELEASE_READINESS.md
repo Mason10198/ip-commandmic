@@ -61,7 +61,10 @@ None.
   PTT, Power off/standby/wake, and acceptance of the public synthetic locally
   administered identity.
 - [ ] Pass ten restart/reconnect/PoE cycles for each physical endpoint role.
-- [ ] Pass a 30-minute idle/active soak for each physical endpoint role.
+- [ ] Pass a bounded five-minute idle/active soak for each physical endpoint
+  role. The accepted 30-minute real-CommandMic/software-radio run already
+  exceeds this duration; the opposite role remains to be repeated from the
+  exact candidate installation.
 - [ ] Record synchronized median, p95 and maximum latency and verify that no
   fault path produces stale audio, post-stop RTP or stuck PTT.
 

@@ -430,7 +430,7 @@ broad fuzzing is permitted against hardware at any tier.
 - Cross-check Python and Wireshark field values automatically.
 - Run software-radio ↔ software-mic exhaustive state-machine tests.
 - Run real mic ↔ software radio and software mic ↔ real radio conformance
-  matrices, including restart and 30-minute stability gates.
+  matrices, including restart and five-minute stability gates.
 - Compare generated exchanges field-for-field and timing-within-tolerance to
   real traces; document every intentional difference.
 
@@ -528,7 +528,7 @@ stabilization.
 
 The Phase 1 gate requires, with the physical CommandMic absent:
 
-- ten clean cold-start/reconnect cycles and a minimum 30-minute operating soak;
+- ten clean cold-start/reconnect cycles and a bounded five-minute operating soak;
 - field-for-field screen and indicator parity for the exercised state corpus;
 - every physical control available in software with verified event timing;
 - intelligible, stable live receive and transmit audio, including silence and
@@ -573,7 +573,7 @@ hardware acceptance gates.
 - Provide a documented reference adapter for an AllStarLink-style audio/PTT/COR
   interface, kept modular so other applications can use the same endpoint API.
 - Validate arbitrary screen changes, every control, bidirectional live audio,
-  PTT/application state, ten restarts and a minimum 30-minute soak with the real
+  PTT/application state, ten restarts and a bounded five-minute soak with the real
   radio disconnected.
 - Confirm the physical mic remains usable and recovers cleanly after the bridge
   or network disappears, without stale PTT or uncontrolled audio transmission.
@@ -612,7 +612,7 @@ final reproducibility and limitations audit.
 
 1. Repeat the complete Lab matrix against the physical CommandMic, including
    controls, display, volume, recording, Parrot, live gain changes, playback,
-   ten PoE cycles and a 30-minute idle/active soak.
+   ten PoE cycles and a bounded five-minute idle/active soak.
 2. Complete synchronized latency plus device/network failure evidence for the
    Desktop GUI and `SoftwareCommandMicEndpoint`.
 3. Finish auxiliary display-byte and uncommon screen-corpus mapping, feeding

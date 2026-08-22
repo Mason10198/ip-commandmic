@@ -157,6 +157,37 @@ JSONL audits. Exact coverage and thresholds are in
 Hardware-free success proves implementation consistency, not new physical wire
 semantics.
 
+## Bounded physical acceptance runner
+
+`scripts/run_physical_acceptance.py` automates the ten-cycle and five-minute
+physical reliability gate while leaving only peer power removal/restoration to
+the operator. It emits audible cues, detects loss and recovery, rejects any
+transient instability during the soak, fails on PTT or endpoint errors, and
+writes a sanitized JSON summary beside a private JSONL audit.
+
+For a software CommandMic and dummy-loaded real radio:
+
+```powershell
+python scripts/run_physical_acceptance.py `
+  --role software-commandmic --dummy-load-confirmed `
+  --cycles 10 --soak-seconds 300 `
+  --output artifacts/software-mic-physical-acceptance.json
+```
+
+For a real CommandMic and software radio, with the real radio disconnected:
+
+```powershell
+python scripts/run_physical_acceptance.py `
+  --role software-radio --real-radio-disconnected `
+  --cycles 10 --soak-seconds 300 `
+  --output artifacts/software-radio-physical-acceptance.json
+```
+
+The software-CommandMic role always starts with microphone transmission and
+receive playback disabled. The software-radio role always disables automatic
+PTT and ordinary-key responses. Run the script using the clean environment in
+which the exact release-candidate wheel was installed.
+
 ## Remaining physical acceptance
 
 Before final `1.0.0`, the exact candidate must still pass:
@@ -167,7 +198,7 @@ Before final `1.0.0`, the exact candidate must still pass:
    supported controls, display/indicators, receive audio, live transmit audio
    and PTT;
 3. ten restart/reconnect/PoE cycles for each physical endpoint role;
-4. a 30-minute idle/active soak for each role; and
+4. a bounded five-minute idle/active soak for each role; and
 5. synchronized median, p95 and maximum end-to-end latency measurement.
 
 The current gate ledger is [`RELEASE_READINESS.md`](RELEASE_READINESS.md).

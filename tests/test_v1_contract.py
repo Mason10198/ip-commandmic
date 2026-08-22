@@ -71,6 +71,7 @@ def test_v1_scope_records_required_boundaries() -> None:
     ):
         assert heading in scope
     assert "30-minute hardware-free bidirectional soak" in scope
+    assert "bounded five-minute physical idle/active soak" in scope
     assert "true subprocess and network-interruption" in scope
     assert "Emergency-mode behavior" in scope
 

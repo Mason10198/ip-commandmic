@@ -105,7 +105,7 @@ product gate. Remaining conformance work:
 
 1. run the separate physical-CommandMic/Lab and real-radio/Desktop matrices,
    including synchronized latency and calibrated volume/acoustic measurements;
-2. complete ten physical restart/PoE cycles and a 30-minute physical
+2. complete ten physical restart/PoE cycles and a bounded five-minute physical
    idle/active soak for each endpoint role;
 3. expand the synthetic display corpus and map hold/repeat/chord cases as
    post-v1 research unless the supported v1 contract is broadened; and

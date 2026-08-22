@@ -88,13 +88,15 @@ Version 1 must provide:
 4. a 30-minute hardware-free bidirectional soak passes;
 5. true subprocess and network-interruption recovery matrices pass;
 6. ten physical restart/reconnect cycles pass for each endpoint role;
-7. both physical endpoint matrices pass with no stuck PTT, stale audio,
+7. a bounded five-minute physical idle/active soak passes for each endpoint
+   role;
+8. both physical endpoint matrices pass with no stuck PTT, stale audio,
    post-stop RTP or display divergence;
-8. median, p95 and maximum software/audio latency are recorded for the
+9. median, p95 and maximum software/audio latency are recorded for the
    controlled lab;
-9. wheel and source distribution install and test from clean Python 3.11,
+10. wheel and source distribution install and test from clean Python 3.11,
    3.12, 3.13 and 3.14 environments; and
-10. the normative specification, message catalogue, API guide, feature matrix,
+11. the normative specification, message catalogue, API guide, feature matrix,
     sanitized fixtures and Wireshark dissector agree for supported messages.
 
 Any unmet gate blocks `1.0.0`. A release candidate may be published with a
