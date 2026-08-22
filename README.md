@@ -8,9 +8,8 @@ published on [PyPI](https://pypi.org/project/ip-commandmic/1.0.0/).
 The stable API contract and hardware-free release gates are complete. Major
 everyday controls, the LCD, status LED,
 startup, reconnection, PTT and bidirectional low-latency audio are implemented
-and tested against real hardware. Final `1.0.0` remains blocked only by final
-artifact and package-index publication steps
-listed in [the release-readiness ledger](docs/RELEASE_READINESS.md). Some
+and tested against real hardware. Version `1.0.0` is fully published and its
+release record is closed in [the release-readiness ledger](docs/RELEASE_READINESS.md). Some
 auxiliary display controls, uncommon state messages and error branches remain
 explicitly deferred from the scoped v1 contract.
 
@@ -34,16 +33,18 @@ endorsed by Icom Incorporated.
 
 Package-level changes are summarized in [`CHANGELOG.md`](CHANGELOG.md).
 
-Applications and shared presentation live separately:
+The primary application and reference tools live separately:
 
-- [`@ip-commandmic/ui`](https://github.com/mason10198/ip-commandmic-ui) — shared
-  semantic UI contracts, renderer components and visual theme;
+- `ip-commandmic-gateway` — primary cross-platform Python service and embedded
+  PWA, supporting both endpoint roles from one installation (under construction);
 - [IP CommandMic Desktop](https://github.com/mason10198/ip-commandmic-desktop) —
-  Windows/macOS native-webview application;
-- [IP CommandMic Web](https://github.com/mason10198/ip-commandmic-web) — browser
-  gateway and PWA;
+  published reference/fallback software CommandMic;
 - [IP CommandMic Lab](https://github.com/mason10198/ip-commandmic-lab) —
-  physical-mic hardware lab and protocol exerciser.
+  published physical-mic conformance and diagnostic tool.
+
+The gateway runs beside the radio or physical CommandMic and serves browsers on
+computers, phones and tablets. Browsers use authenticated semantic and audio
+transports; they never connect directly to the raw CommandMic TCP/UDP protocol.
 
 ## Install for development
 

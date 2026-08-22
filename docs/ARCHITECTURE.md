@@ -11,7 +11,7 @@ All wire behavior belongs to `src/ip_commandmic`, never to a GUI asset:
 | Media | `audio.py` | PCM/RTP payload conversion, live devices, jitter and WAV helpers |
 | Sessions | `emulator.py`, `gui_server.py`, `test_app.py` endpoint classes | both endpoint roles, startup, heartbeat, ACKs, timers, reconnect and media lifecycle |
 | Tools | `pcap.py`, `capture.py`, `analysis.py`, `experiments.py` | passive evidence collection and analysis |
-| Applications | desktop services plus HTML/SVG assets | presentation, settings and user interaction only |
+| Applications | gateway plus reference Desktop/Lab clients | presentation, settings, browser transport and user interaction only |
 
 `SoftwareCommandMicEndpoint` is the public high-level endpoint for a real radio.
 `SoftwareRadioEndpoint` is the public high-level endpoint for a physical or
@@ -28,11 +28,16 @@ attributes and whole-LCD modes are generated from public display metadata in
 the library. Its expert raw-frame field still passes through the library parser
 before transmission.
 
-`@ip-commandmic/ui` owns the shared browser-native renderer, theme tokens and
-semantic action/event contracts. Desktop binds those contracts through its
-pywebview adapter. Web binds the same contracts through an authenticated
-WebSocket/WebRTC adapter; the browser never receives raw control frames or
-opens CommandMic TCP/UDP sockets.
+`ip-commandmic-gateway` is the primary product. It embeds the browser-native
+renderer and semantic action/event contracts, then binds them to exactly one
+public endpoint role through authenticated WebSocket and bounded audio
+transports. The browser never receives raw control frames or opens CommandMic
+TCP/UDP sockets. The separate UI scaffold is a temporary migration source and
+will be retired after its useful assets are folded into the gateway.
+
+Desktop and Lab remain published reference/fallback clients and physical
+conformance instruments. New general-purpose UI features belong in the gateway;
+the reference clients change only for diagnostics, safety or hardware validation.
 
 The radio-side endpoint defaults to a neutral, passive observer. Connection
 necessarily performs the verified startup/heartbeat exchange and two blank

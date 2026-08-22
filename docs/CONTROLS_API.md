@@ -2,8 +2,8 @@
 
 Status: public reference API for package version `1.0.0`.
 
-The `ip_commandmic` package is the implementation shared by the IP CommandMic
-Desktop, Web gateway, IP CommandMic Lab application, capture tools and tests.
+The `ip_commandmic` package is the implementation shared by the primary IP
+CommandMic Gateway, reference Desktop/Lab applications, capture tools and tests.
 Applications should use the endpoint classes below. They should use wire-level
 functions only for analyzers, dissectors, conformance tools or deliberate
 research interfaces.

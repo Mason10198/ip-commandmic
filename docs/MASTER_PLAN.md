@@ -24,14 +24,13 @@ Nothing may be counted complete merely because it was not seen.
 
 The independently packaged components are `ip-commandmic 1.0.0` (final
 stable),
-`ip-commandmic-desktop 0.1.0-alpha.9`, and `ip-commandmic-lab
-0.1.0-alpha.32`. Library 1.0.0 is published on GitHub and PyPI; Lab alpha.32 is
-public on GitHub. Automated suites
+`ip-commandmic-desktop 0.1.0-alpha.10`, and `ip-commandmic-lab
+0.1.0-alpha.33`. All three are public; library 1.0.0 is also on PyPI. Automated suites
 pass (202
 library tests plus 5 subtests, 3
-Desktop tests, and 19 Lab tests). The `ip-commandmic-ui` and
-`ip-commandmic-web` repositories are initialized contract scaffolds and are not
-release products yet.
+Desktop tests, and 19 Lab tests). The former Web scaffold is now the
+`ip-commandmic-gateway` primary-product repository; the separate UI scaffold is
+temporary migration input rather than another planned release package.
 
 The physical-CommandMic Lab matrix is accepted through alpha.32, including live
 gain changes, display restoration, fresh audio statistics/spectrum, recording,
@@ -166,16 +165,15 @@ synchronized acoustic/RF latency is post-v1 product characterization.
 The investigation is ordered around two usable products. Protocol semantics that
 are unnecessary for transparent endpoint replacement must not delay them.
 
-1. **Primary product — software CommandMic for a real radio.** With the physical
-   CommandMic disconnected, software must establish and maintain the complete
-   session, reproduce the screen and indicators, provide every physical control,
-   and carry live receive and transmit audio. This is the shortest path to using
-   the F5330D/F6330D without any physical CommandMic.
-2. **Secondary product — software radio for a physical CommandMic.** With the
-   radio disconnected, software must boot and operate the physical CommandMic,
-   render arbitrary screen/indicator state, receive every control and PTT event,
-   and exchange live audio. A reference bridge will expose these capabilities to
-   applications such as an AllStarLink node.
+1. **Primary product — unified IP CommandMic Gateway.** One cross-platform
+   Python service exposes a responsive PWA and runs exactly one endpoint role at
+   a time: software CommandMic for a real radio, or software radio for a physical
+   CommandMic. It owns authentication, exclusive control, audio transport and
+   fail-closed safety while the stable library owns the wire protocol.
+2. **Reference products — Desktop and Lab.** These physically accepted clients
+   remain downloadable fallbacks, diagnostic tools and conformance instruments.
+   They are not parallel primary UIs and receive changes only when gateway,
+   safety or hardware-validation work requires them.
 3. **Later exhaustive closure.** Advanced radio-feature semantics, uncommon
    accessories and safety-critical functions remain in the feature matrix, but
    are investigated after both transparent endpoint products work. Generic key
@@ -226,10 +224,11 @@ the compatibility authority; Python is the reference, not a language lock-in.
 
 ### Programs built on the package
 
-1. **Virtual CommandMic application (primary product).** A real-radio client
-   with a faithful virtual screen, indicators, every key, selectable PC speaker
-   and microphone, PTT safety lock, logging and reconnect status.
-2. **CommandMic Lab Console (investigation tool and secondary-product UI).** A
+1. **Unified gateway/PWA (primary product).** A locally installed Python
+   service that exposes both endpoint roles through one authenticated browser UI
+   on computers, phones and tablets. It provides exclusive control ownership,
+   bounded audio, PTT safety, setup, logging and reconnect status.
+2. **CommandMic Lab Console (reference/conformance tool).** A
    software-radio client that can send text and complete visual/LED/backlight/
    beep state to a physical mic; play tones, WAV or live audio; monitor and
    record microphone audio; show all key/PTT events and timing; and export raw
@@ -613,11 +612,10 @@ final reproducibility and limitations audit.
 
 ## Immediate next actions
 
-1. Add concise endpoint integration examples and recipes for third-party
-   software using both stable endpoint roles, including lifecycle, callbacks,
-   audio injection/capture, reconnect and safety boundaries.
-2. Decide whether Phase 2C's generic AllStarLink-style audio/PTT/COR adapter is
-   the next product deliverable; keep it outside the core protocol package.
+1. Complete gateway Milestone 0: package/namespace rename, fold in the useful UI
+   scaffold, define role-neutral contracts and add Python/frontend CI.
+2. Implement localhost-only CommandMic mode without PTT, backed exclusively by
+   `SoftwareCommandMicEndpoint`, then pass software loopback acceptance.
 3. Retain synchronized acoustic/RF latency as optional product characterization;
    the software callback/pacing and device/network failure gates are complete.
 4. Finish auxiliary display-byte and uncommon screen-corpus mapping, feeding
