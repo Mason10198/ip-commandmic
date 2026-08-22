@@ -43,7 +43,7 @@ time from the same PC clock used by Wireshark. Record “no action” explicitly
 idle controls.
 
 For experiments requiring a physical action, use this handshake adapted to the
-Codex UI (user messages may be queued while a capture command is running):
+Interactive development environment (operator messages may be queued while a capture command is running):
 
 1. Operator explicitly replies `ready` before capture begins.
 2. Capture starts and the recorder explicitly reports `recording`.

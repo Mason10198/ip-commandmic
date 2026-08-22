@@ -1,0 +1,19 @@
+name: Protocol research
+description: Propose or report an evidence-backed protocol mapping.
+title: "protocol: "
+labels: ["protocol", "needs-evidence"]
+body:
+  - type: textarea
+    attributes:
+      label: Behavior
+      description: Describe the physical action, configuration and observed result.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Evidence
+      description: List sanitized fixtures, hashes and repeat counts. Do not upload raw voice, codeplugs or identifying captures.
+  - type: textarea
+    attributes:
+      label: Safety conditions
+      description: State which endpoint was disconnected and how RF transmission was prevented or contained.

@@ -3,6 +3,13 @@
 An evidence-backed, language-neutral protocol specification and Python reference
 implementation for the Ethernet CommandMic used with Icom F5330D/F6330D radios.
 
+The package lets an application integrate with either side of the link: replace
+the physical microphone to control a radio, or replace the radio to use the
+CommandMic as a networked control-and-audio device. It can support radioless
+AllStarLink nodes, browser gateways, dispatch consoles, multi-radio control,
+accessibility tools, automation, or game-controller mappings. Application
+policy stays outside the protocol core.
+
 Status: **[1.0.0 stable](https://github.com/Mason10198/ip-commandmic/releases/tag/v1.0.0)**,
 published on [PyPI](https://pypi.org/project/ip-commandmic/1.0.0/).
 The stable API contract and hardware-free release gates are complete. Major
@@ -23,15 +30,18 @@ endorsed by Icom Incorporated.
 - `docs/PROTOCOL.md`: normative working protocol specification;
 - `docs/MESSAGE_CATALOG.md`: byte layouts, confidence and examples;
 - `docs/CONTROLS_API.md`: public Python API;
+- `docs/PROJECT_STATUS.md`: concise implemented/partial/planned capability map;
 - `docs/CONFORMANCE.md`: hardware-free endpoint baseline and remaining gates;
 - `docs/V1_SCOPE.md`: stable 1.x API boundary, release gates and exclusions;
 - `docs/RELEASE_READINESS.md`: live v1 completion and publication checklist;
 - `docs/RELEASING.md`: reproducible candidate verification and publication procedure;
-- `docs/MASTER_PLAN.md`: phased reverse-engineering and acceptance plan;
+- `docs/MASTER_PLAN.md`: community roadmap and research priorities;
 - `wireshark/ip_commandmic.lua`: independent Wireshark dissector;
 - `tests`: sanitized fixtures and regression/conformance tests.
 
 Package-level changes are summarized in [`CHANGELOG.md`](CHANGELOG.md).
+Cross-repository work is organized on the
+[IP CommandMic GitHub Project](https://github.com/users/Mason10198/projects/1).
 
 The primary application and reference tools live separately:
 
