@@ -5,7 +5,8 @@ in `docs/PROTOCOL.md`; this file tracks package and compatibility changes.
 
 ## Unreleased
 
-No changes yet.
+- Update the architecture documentation after retiring the standalone UI
+  migration scaffold into `ip-commandmic-gateway`.
 
 ## 1.0.1 — 2026-08-22
 

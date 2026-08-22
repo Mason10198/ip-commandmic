@@ -32,8 +32,8 @@ before transmission.
 renderer and semantic action/event contracts, then binds them to exactly one
 public endpoint role through authenticated WebSocket and bounded audio
 transports. The browser never receives raw control frames or opens CommandMic
-TCP/UDP sockets. The separate UI scaffold is a temporary migration source and
-will be retired after its useful assets are folded into the gateway.
+TCP/UDP sockets. The browser state, transport and theme scaffold has been folded
+into the gateway and is maintained there with the service.
 
 Desktop and Lab remain published reference/fallback clients and physical
 conformance instruments. New general-purpose UI features belong in the gateway;
