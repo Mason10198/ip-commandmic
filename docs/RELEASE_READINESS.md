@@ -77,7 +77,7 @@ None.
   GitHub prerelease is intentionally not a package-index publication.
 - [ ] Re-run the applicable physical gates from the exact release-candidate
   artifacts and retain sanitized results.
-- [ ] Publish the verified `1.0.0rc3` wheel/source archives and repeat the clean
+- [x] Publish the verified `1.0.0rc3` wheel/source archives and repeat the clean
   installed-artifact smoke from the downloaded release assets.
 - [ ] Tag and publish `1.0.0` only when every v1 gate is complete.
 
@@ -89,6 +89,18 @@ None.
 - Source: `ip_commandmic-1.0.0rc2.tar.gz`, SHA-256
   `be986a0a59a042e04e47abb036b481ace57cb9a63b5b2bea84e59d3c17cc121f`
 
-The tag is lightweight because the release environment had no configured
-signing key or GPG executable. Final `1.0.0` should use a maintainer-controlled
-signed tag when signing infrastructure is available.
+The latest published candidate is:
+
+- Release: <https://github.com/Mason10198/ip-commandmic/releases/tag/v1.0.0rc3>
+- Accepted commit: `36104cc032059b7eba3779fdd1a241f4d8a6e489`
+- Wheel: `ip_commandmic-1.0.0rc3-py3-none-any.whl`, SHA-256
+  `e8441c08589c1b0ffbf133b5b75f5308e44ce5eedd32eeba9412166d0588d1ae`
+- Source: `ip_commandmic-1.0.0rc3.tar.gz`, SHA-256
+  `1e396f1d3b99e7ed47a2a5664cfbeb6807c6ba631ade702c505b9df1ccb89173`
+- The public wheel was downloaded, hash-verified and imported as
+  `ip_commandmic.__version__ == "1.0.0rc3"` from a clean environment.
+
+The rc2 tag is lightweight; rc3 uses an annotated but unsigned tag because the
+release environment had no configured signing key or GPG executable. Final
+`1.0.0` should use a maintainer-controlled signed tag when signing
+infrastructure is available.

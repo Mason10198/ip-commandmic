@@ -22,11 +22,10 @@ Nothing may be counted complete merely because it was not seen.
 
 ## Current handoff checkpoint (2026-08-21)
 
-The independently packaged components are `ip-commandmic 1.0.0rc3` (verified
-local release candidate),
+The independently packaged components are `ip-commandmic 1.0.0rc3`,
 `ip-commandmic-desktop 0.1.0-alpha.9`, and `ip-commandmic-lab
-0.1.0-alpha.32`. The library rc2 and Lab alpha.32 prereleases are public on
-GitHub; rc3 publication, TestPyPI and PyPI remain pending. Automated suites
+0.1.0-alpha.32`. The library rc3 and Lab alpha.32 prereleases are public on
+GitHub; TestPyPI and PyPI remain pending. Automated suites
 pass (199
 library tests plus 5 subtests, 3
 Desktop tests, and 19 Lab tests). The `ip-commandmic-ui` and
