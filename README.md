@@ -20,7 +20,7 @@ by Icom Incorporated.
 
 ## Status
 
-Version **[1.0.0](https://github.com/Mason10198/ip-commandmic/releases/tag/v1.0.0)**
+Version **[1.0.1](https://github.com/Mason10198/ip-commandmic/releases/tag/v1.0.1)**
 is stable and available from [PyPI](https://pypi.org/project/ip-commandmic/).
 Both endpoint roles, ordinary controls, the primary display, indicators, soft
 power, PTT and bidirectional low-latency audio have been tested against real

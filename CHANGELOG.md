@@ -7,6 +7,17 @@ in `docs/PROTOCOL.md`; this file tracks package and compatibility changes.
 
 No changes yet.
 
+## 1.0.1 — 2026-08-22
+
+- Rewrites the project README around the library's bidirectional integration
+  purpose, installation, endpoint selection, verified scope and example uses.
+- Adds a navigable documentation index, concise implementation-status page and
+  community roadmap while keeping normative protocol material versioned beside
+  the implementation and tests.
+- Adds concise `AGENTS.md` guidance for safe, evidence-backed contributions by
+  coding agents.
+- Makes no runtime or stable-API behavior changes from 1.0.0.
+
 ## 1.0.0 — 2026-08-21
 
 - Declares the documented stable API and language-independent wire protocol
