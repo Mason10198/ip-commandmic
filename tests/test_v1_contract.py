@@ -81,6 +81,20 @@ def test_distribution_declares_inline_type_information() -> None:
     assert files("ip_commandmic").joinpath("py.typed").is_file()
 
 
+def test_scheduled_conformance_stays_on_bounded_windows_contract() -> None:
+    workflow = (
+        Path(__file__).parents[1]
+        / ".github"
+        / "workflows"
+        / "extended-conformance.yml"
+    ).read_text(encoding="utf-8")
+    assert "runs-on: windows-latest" in workflow
+    assert "--sustained-audio-seconds 150" in workflow
+    assert "--cold-restart-cycles 10" in workflow
+    assert "timeout-minutes: 15" in workflow
+    assert "--sustained-audio-seconds 1800" not in workflow
+
+
 def test_normative_docs_and_dissector_cover_every_typed_composer() -> None:
     root = Path(__file__).parents[1]
     protocol = (root / "docs" / "PROTOCOL.md").read_text(encoding="utf-8")

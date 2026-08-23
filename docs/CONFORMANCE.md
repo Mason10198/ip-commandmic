@@ -41,6 +41,12 @@ python -m ip_commandmic.conformance --artifact-directory artifacts/stress `
 baseline uses one second, three cycles, and a 20-second per-wait budget so the
 probe and stable phases remain portable while CI stays bounded.
 
+The scheduled extended workflow runs on the Windows reference host with 150
+seconds in each media direction (five minutes total) and ten fresh-object
+restart cycles. This is the maintained recurring health check. The historical
+30-minute-per-direction result below remains release evidence, not a recurring
+CI duration requirement.
+
 The CLI writes `report.json` beside the two JSONL audits and also prints the
 same JSON to standard output. On 2026-08-21 the release-candidate configuration
 passed all 19 checks in 3,676.282 seconds with 1,800 seconds per media direction
